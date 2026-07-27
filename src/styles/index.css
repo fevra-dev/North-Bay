@@ -1,0 +1,224 @@
+@import "tailwindcss";
+
+/*
+  CLASS-BASED DARK MODE.
+
+  Tailwind v4 compiles every `dark:` utility inside `@media (prefers-color-scheme: dark)` by
+  default, which responds only to the operating system setting and ignores a manually toggled
+  class entirely. That is why a hand-built theme switch appears to do nothing: the class lands
+  on the element, and not one `dark:` utility is scoped to look for it.
+
+  This one line redefines the variant to key off a `.dark` class on any ancestor, which is what
+  makes the header's sun/moon toggle actually drive the theme. `:where()` keeps the selector at
+  zero specificity, so `dark:` utilities still lose to a more specific rule exactly as before
+  rather than silently winning new fights.
+*/
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+  REDUCED MOTION. Honours the OS-level "reduce motion" setting for anyone who gets motion
+  sickness or is otherwise distracted by animation. Not disabled outright: durations collapse to
+  effectively zero so state changes still land, they just arrive instantly.
+  WCAG 2.2 AA, SC 2.3.3 (Animation from Interactions).
+*/
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/*
+  BRAND COLOR TOKENS.
+
+  The two brand colors live here as named, semantic classes rather than as arbitrary bracket
+  values (`bg-[#003366]`) scattered through the markup. Changing the municipal navy means
+  editing one line here instead of finding every `#003366` across a dozen files and hoping none
+  were missed, and the markup reads as intent (`nb-bg-navy`) rather than as a hex literal.
+
+  ON THE ABSENCE OF `!important`, which matters more than it looks:
+
+  These rules originally carried `!important` on every declaration. That worked for the light
+  theme, and it silently broke the dark one — `!important` on `.nb-text-navy` beats
+  `dark:text-blue-400`, so every element pairing a brand token with a dark variant kept its
+  light-mode color on a near-black background. Navy #003366 body links on #09090b. The bug was
+  invisible for as long as dark mode itself was broken, and surfaced the moment it started
+  working.
+
+  Declaring these in `@layer components` is the fix and needs no `!important` at all: Tailwind
+  v4 orders its cascade layers theme → base → components → utilities, so a utility already
+  outranks anything in this layer regardless of selector specificity. Light mode gets the brand
+  token, dark mode gets the `dark:` utility that overrides it, and neither has to fight.
+*/
+@layer components {
+  .nb-bg-navy {
+    background-color: #003366;
+  }
+  .nb-hover-bg-navy:hover,
+  .nb-hover-bg-navy:active {
+    background-color: #003366;
+  }
+  .nb-hover-navy-dark:hover {
+    background-color: #001f3f;
+  }
+
+  /*
+    `:active` sits alongside `:hover` on the group rules below because hover on a real
+    touchscreen is inconsistent between browsers — some never enter a hover state from a tap at
+    all — while `:active` fires reliably on the press itself everywhere. Verified against a real
+    mobile viewport, not assumed.
+  */
+  .group:hover .nb-group-hover-bg-navy,
+  .group:active .nb-group-hover-bg-navy {
+    background-color: #003366;
+  }
+  .nb-text-navy {
+    color: #003366;
+  }
+  .nb-hover-text-navy:hover {
+    color: #003366;
+  }
+  .group:hover .nb-group-hover-navy {
+    color: #003366;
+  }
+  .group:hover .nb-group-hover-white,
+  .group:active .nb-group-hover-white {
+    color: #ffffff;
+  }
+  .nb-hover-text-white:hover,
+  .nb-hover-text-white:active {
+    color: #ffffff;
+  }
+  .nb-border-navy {
+    border-color: #003366;
+  }
+  .nb-focus-border-navy:focus {
+    border-color: #003366;
+  }
+
+  /*
+    Focus indicators. A 4px ring at 25% opacity clears the WCAG 2.2 AA focus-appearance
+    threshold (SC 2.4.11) against the light page background. The dark-mode variant switches to
+    blue-400 because navy-on-near-black is not a visible focus ring.
+  */
+  .nb-focus-ring-navy:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 4px rgb(0 51 102 / 0.25);
+  }
+  .nb-focus-ring-navy-all:focus {
+    outline: none;
+    box-shadow: 0 0 0 4px rgb(0 51 102 / 0.2);
+  }
+
+  .nb-bg-ink {
+    background-color: #111111;
+  }
+  .nb-hover-bg-ink:hover {
+    background-color: #111111;
+  }
+  .nb-text-ink {
+    color: #111111;
+  }
+  .nb-hover-text-ink:hover {
+    color: #111111;
+  }
+  .group:hover .nb-group-hover-ink,
+  .group:active .nb-group-hover-ink {
+    color: #111111;
+  }
+  .nb-border-ink {
+    border-color: #111111;
+  }
+  .nb-hover-border-ink:hover {
+    border-color: #111111;
+  }
+  .nb-focus-text-ink:focus {
+    color: #111111;
+  }
+  .nb-focus-border-ink:focus {
+    border-color: #111111;
+  }
+
+  /*
+    The skip link must render above the sticky header, which sits at z-index 100. Without this
+    it receives focus and is announced correctly but is painted *behind* the header — present to
+    a screen reader, invisible to a sighted keyboard user. That split failure is worse than
+    having no skip link at all, because it passes an automated audit while still stranding the
+    person it exists for.
+  */
+  .nb-skiplink:focus {
+    z-index: 200;
+  }
+}
+
+/*
+  Dark-mode focus ring. Scoped under `.dark` rather than expressed as a `dark:` utility because
+  the ring is defined here rather than in the markup — there is no utility on the element for a
+  variant to attach to.
+*/
+@layer components {
+  .dark .nb-focus-ring-navy:focus-visible {
+    box-shadow: 0 0 0 4px rgb(96 165 250 / 0.4);
+  }
+  .dark .nb-focus-ring-navy-all:focus {
+    box-shadow: 0 0 0 4px rgb(96 165 250 / 0.35);
+  }
+}
+
+/*
+  ENTRANCE ANIMATIONS.
+
+  The markup uses `animate-in`, `fade-in`, `slide-in-from-top-2` and `slide-in-from-right-4`.
+  Those are not core Tailwind utilities — they ship in the separate `tailwindcss-animate`
+  plugin, which was never installed, so every one of them was inert: the mega menu, the mobile
+  panel, the dialogs and the wizard steps all appeared instantly with no transition.
+
+  Defining the keyframes here directly is a few lines of CSS against a whole extra dependency in
+  the tree for the same result (ADR-0001, zero-trust dependencies). The `prefers-reduced-motion`
+  block above still collapses all of it to ~0ms for anyone who asks.
+*/
+@layer utilities {
+  .animate-in {
+    animation-name: nb-enter;
+    animation-duration: var(--nb-enter-duration, 200ms);
+    animation-fill-mode: both;
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .fade-in {
+    --nb-enter-opacity: 0;
+  }
+  .slide-in-from-top-2 {
+    --nb-enter-translate-y: -0.5rem;
+  }
+  .slide-in-from-right-4 {
+    --nb-enter-translate-x: 1rem;
+  }
+}
+
+@keyframes nb-enter {
+  from {
+    opacity: var(--nb-enter-opacity, 1);
+    transform: translate3d(var(--nb-enter-translate-x, 0), var(--nb-enter-translate-y, 0), 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/*
+  PRINT. Council agendas and meeting tables are the one thing on a municipal site people
+  genuinely print. Backgrounds are dropped and text forced to black so a dark-mode visitor who
+  hits Print does not send a page of near-black ink to the printer.
+*/
+@media print {
+  .dark,
+  .dark * {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+}

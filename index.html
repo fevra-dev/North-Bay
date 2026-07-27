@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!--
+      SVG favicon rather than the wordmark PNG: the City's mark is white on transparent, which
+      renders as an invisible tab icon against light browser chrome. Navy ground, white initials.
+    -->
+    <link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg" />
+
+    <title>City of North Bay — Redesign Concept</title>
+    <meta
+      name="description"
+      content="An unofficial redesign concept for the City of North Bay website, focused on task-based information architecture, WCAG 2.2 AA accessibility, and full English/French parity."
+    />
+    <meta name="color-scheme" content="light dark" />
+
+    <!--
+      ANTI-FLASH THEME SCRIPT. This runs synchronously, before the browser paints anything,
+      so a returning dark-mode visitor never sees a white page flash before React mounts and
+      applies the theme. It is deliberately dependency-free inline JS for that reason: any
+      module import would be deferred past first paint, which is exactly the delay causing
+      the flash. Kept in lockstep with src/hooks/useTheme.ts, which owns the same two keys.
+    -->
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('nb-theme');
+          var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          var isDark = stored ? stored === 'dark' : prefersDark;
+          if (isDark) document.documentElement.classList.add('dark');
+        } catch (e) {
+          /* localStorage unavailable (private mode, blocked cookies): fall through to light. */
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

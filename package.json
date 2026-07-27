@@ -1,0 +1,35 @@
+{
+  "name": "north-bay-redesign-concept",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "An unofficial redesign concept for northbay.ca, built as a portfolio piece.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "lint": "oxlint --config .oxlintrc.json src",
+    "format": "biome format --write .",
+    "format:check": "biome format --error-on-warnings .",
+    "typecheck": "tsc --noEmit",
+    "verify": "node tests/verify.mjs"
+  },
+  "dependencies": {
+    "lucide-react": "^0.469.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.0",
+    "@tailwindcss/vite": "^4.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "eslint-plugin-oxlint": "^0.15.0",
+    "oxlint": "^0.15.0",
+    "playwright": "^1.62.0",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5.7.0",
+    "vite": "^6.0.0"
+  }
+}

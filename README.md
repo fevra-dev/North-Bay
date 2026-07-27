@@ -1,0 +1,168 @@
+# City of North Bay — Redesign Concept
+
+**Live demo → [fevra-dev.github.io/North-Bay](https://fevra-dev.github.io/North-Bay/)**
+
+> **This is an unofficial concept, not the City's website.** It is an independent redesign study
+> built by Mac Calarco as part of an application for the Web Content Specialist (Communications)
+> position. It is not affiliated with, authorized by, or endorsed by the Corporation of the City
+> of North Bay. The City's wordmark and public content appear here for the purpose of
+> illustrating a redesign proposal, and all municipal branding remains the property of the City.
+> Nothing here is a live municipal service — no form submits, no payment processes, and no
+> contact route reaches City staff.
+
+---
+
+## What this is
+
+A working front-end concept for northbay.ca, built to demonstrate what a task-oriented,
+accessible, genuinely bilingual municipal site could look like. Every interaction on the page is
+real: the search works, the dialogs trap focus, the language toggle switches the document, the
+theme toggle persists. It is a prototype in the sense that the content is mock and the links do
+not lead anywhere, not in the sense that the behaviour is faked.
+
+## The decisions, and why
+
+### Information architecture organized around what residents came to do
+
+The site is built around an **"I want to…"** task selector rather than the City's org chart. That
+replaces a fifth "Life Events" navigation tab which duplicated this same logic — the original
+layout put life-stage journeys and municipal departments side by side as though they were the
+same kind of thing, leaving the visitor to work out which mental model applied to which tab
+before they could click anything.
+
+NYC.gov's 2025 relaunch made the same bet: surface the handful of things people actually arrive
+to do, ahead of the structure of the organization that does them.
+
+### Accessibility targeted one level above the legal floor
+
+Ontario's Integrated Accessibility Standards Regulation (O. Reg. 191/11) has required municipal
+sites to meet **WCAG 2.0 Level AA** since January 2021. This concept treats that as the floor and
+targets **WCAG 2.2 Level AA** instead:
+
+- Skip link that is genuinely visible when focused, not just present in the DOM
+- A true focus trap in every dialog, with focus returned to the trigger on close
+- Live search built to the WAI-ARIA combobox pattern — `aria-activedescendant`, arrow-key
+  navigation, Home/End, and a polite live region announcing the result count
+- Reduced-motion support honouring the OS setting
+- Colour is never the only carrier of meaning: alert severity, urgency, and status each pair
+  their colour with a text label
+- A real accessibility statement in the site itself, naming the conformance target, what has
+  been verified, **and what is still open**
+
+### Bilingual by structure, not by afterthought
+
+Full English/French parity across persistent navigation and page chrome, consistent with
+Ontario's French Language Services Act. `<html lang>` updates with the toggle so screen readers
+switch pronunciation rules, and individual out-of-language words (the "Français" label) carry
+their own `lang` attribute.
+
+The French strings have **not** had a fluent review pass — that is stated in the accessibility
+statement's known-issues section rather than quietly omitted.
+
+### A specific land acknowledgment
+
+Given its own section at the base of the footer, in both languages. The wording names the
+**Robinson-Huron Treaty of 1850** and the Anishinaabeg peoples, specifically **Nipissing First
+Nation**, and extends respect to Métis, Inuit, and all First Peoples. A generic acknowledgment
+that could apply to any municipality in Canada is not really an acknowledgment of anywhere.
+
+### Benchmarked against published redesign research
+
+Interaction and layout decisions were checked against what other governments published about
+their own redesigns, rather than derived from assumption:
+
+| Source | What it informed |
+| --- | --- |
+| **GOV.UK** | Research on step-by-step service flows cautions against running multi-step processes inside a modal — people lose track of where they are. Shaped how the task wizard is scoped and why it states "Step 2 of 3" in text. |
+| **NYC.gov** (2025 relaunch) | Surfacing residents' most common tasks front and centre — the bet the "I want to…" selector makes. |
+| **sf.gov** | Accordion mobile navigation, for the same reason adopted here. Their case studies on small features becoming load-bearing under real demand shaped the alert severity model. |
+| **Tokyo's multilingual resident portal** | How clearly it labels machine-translated content as such rather than presenting it as official text. |
+
+### Two horizontal bars instead of three
+
+The original layout stacked three full-width bars before any content appeared. The utility
+controls (language, theme, data saver, account) fold into the header itself on desktop and into
+the menu panel on mobile, recovering roughly a screen and a half of vertical space above the fold
+on a phone.
+
+### Details that only show up on a real device
+
+- Mobile navigation is a true accordion that expands in place, not a drill-down into a separate
+  screen
+- The menu panel is sized in `dvh`, not `vh`, so its last item is not hidden behind mobile
+  Safari's address bar
+- `:active` accompanies `:hover` on tap targets, because hover on a touchscreen is inconsistent
+  between browsers while `:active` fires reliably everywhere
+- Scroll lock measures the scrollbar's real width and pads for it, so opening a menu does not
+  shift the page sideways
+
+## Verifying it, rather than asserting it
+
+`tests/verify.mjs` drives a real browser (Playwright) through **31 assertions** across desktop
+and mobile viewports — the theme toggle repainting, dark mode surviving a reload, the focus trap
+holding across 50 Tab presses in both directions, combobox arrow-key wrapping, `<html lang>`
+switching, landmark structure, heading order, CSV export, and zero horizontal overflow at 390px.
+
+```bash
+npm run dev          # in one terminal
+npm run verify       # in another
+```
+
+It found real bugs. The mobile horizontal-overflow assertion caught a 330px page-wide scroll
+caused by absolutely-positioned screen-reader text escaping a scroll container that was not its
+containing block — not something visible by looking at the page.
+
+## Running it
+
+```bash
+npm install
+npm run dev        # http://localhost:5173/North-Bay/
+npm run build      # typecheck + production build to dist/
+npm run verify     # browser assertions (dev server must be running)
+```
+
+Requires Node 20+. `npm run verify` uses your installed Chrome; set `NB_CHROMIUM=1` to use
+Playwright's own build instead.
+
+## How it is organized
+
+```
+src/
+  App.tsx              composition root — only state that spans regions
+  components/          one file per region of the page
+  hooks/               useTheme, useTranslation, useFocusTrap, useSiteSearch, useScrollLock
+  data/                content and copy: i18n, navigation, feeds, alerts, conditions
+  lib/                 pure helpers: gauge geometry, CSV, placeholder images
+  styles/index.css     Tailwind entry, dark-mode variant, brand tokens
+tests/verify.mjs       browser assertions
+adr/                   architecture decision records
+```
+
+This began as a single 1,464-line `.tsx` file. Splitting it was not tidying for its own sake: the
+dark-mode bug below was invisible inside a monolith and obvious once the CSS had a file of its own.
+
+## Notes on the rebuild
+
+Four classes of dead code surfaced when this moved from a single-file prototype to a real build,
+each of which looked fine and did nothing:
+
+1. **Dark mode never worked.** Tailwind v4 compiles `dark:` utilities against
+   `prefers-color-scheme` by default and ignores a toggled class. The workaround in the prototype
+   — hand-written `.dark .dark\:bg-*` rules inside a JS template literal — was itself inert,
+   because `\:` collapses to `:` in a template literal, producing a selector that matches nothing.
+   Fixed with one `@custom-variant` line, which let ~113 lines of workaround CSS be deleted.
+2. **Every entrance animation was inert.** `animate-in`, `fade-in`, `slide-in-from-*` come from a
+   plugin that was never installed. Now defined directly as keyframes.
+3. **`!important` on the brand tokens defeated every `dark:` pairing.** Invisible while dark mode
+   was broken; the moment it worked, thirteen token/variant pairs rendered navy-on-black. Fixed
+   by moving them into `@layer components`, where Tailwind's layer order does the work.
+4. **The mobile search field was inert** — it accepted typing and had no state behind it, on the
+   viewport most residents arrive from. It now shares one component with the hero search.
+
+## Licence and attribution
+
+Code is available for review as part of a job application. City of North Bay branding, wordmark,
+and municipal content are the property of the Corporation of the City of North Bay and are
+reproduced here solely to illustrate a redesign proposal.
+
+Built with React, TypeScript, Vite, and Tailwind CSS.
