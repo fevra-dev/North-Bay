@@ -178,6 +178,42 @@ check(
   JSON.stringify(skipVisible),
 );
 
+// 7b. NO HORIZONTAL OVERFLOW AT DESKTOP WIDTHS, IN BOTH LANGUAGES.
+// French labels run roughly 40% longer than their English equivalents, and a header sized around
+// English lengths overflowed the viewport and forced the whole page to scroll sideways the moment
+// the language was switched. Checking only English — which is what the earlier suite did — cannot
+// catch that, so both languages are asserted at every desktop width.
+for (const width of [1024, 1280, 1440, 1920]) {
+  await page.setViewportSize({ width, height: 900 });
+  for (const lang of ['en', 'fr']) {
+    const target = lang === 'fr' ? /switch to french/i : /switch to english/i;
+    const current = await page.evaluate(() => document.documentElement.lang);
+    if (current !== lang) {
+      await page.getByRole('button', { name: target }).click();
+      await page.waitForTimeout(250);
+    }
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    );
+    const headerOverflow = await page.evaluate(() => {
+      const row = document.querySelector('header > div');
+      return Math.round(row.scrollWidth - row.clientWidth);
+    });
+    check(
+      `no horizontal overflow at ${width}px (${lang})`,
+      overflow <= 1 && headerOverflow <= 1,
+      `page=${overflow}px header=${headerOverflow}px`,
+    );
+  }
+}
+// Back to English at the standard width for everything that follows.
+if ((await page.evaluate(() => document.documentElement.lang)) !== 'en') {
+  await page.getByRole('button', { name: /switch to english/i }).click();
+  await page.waitForTimeout(250);
+}
+await page.setViewportSize({ width: 1440, height: 900 });
+await page.waitForTimeout(200);
+
 // 8a. HERO PHOTOGRAPH — white text over a photo is the classic municipal accessibility failure.
 // Measure the actual composited backdrop: hide the hero's own text, screenshot the section, and
 // find the LIGHTEST pixel in it — the worst case for white text anywhere in that band. The

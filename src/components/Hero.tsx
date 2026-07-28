@@ -90,7 +90,7 @@ export const Hero = ({
     */}
     <div
       aria-hidden="true"
-      className="absolute inset-0 -z-10 bg-linear-to-b from-[#003366]/82 via-[#003366]/72 to-[#002347]/80 dark:from-[#001a33]/90 dark:via-[#001a33]/84 dark:to-[#00101f]/88"
+      className="absolute inset-0 -z-10 bg-linear-to-b from-[#003366]/79 via-[#003366]/68 to-[#002347]/77 dark:from-[#001a33]/89 dark:via-[#001a33]/82 dark:to-[#00101f]/87"
     />
 
     <div className="max-w-4xl mx-auto pt-12 pb-12 px-4 sm:px-8">

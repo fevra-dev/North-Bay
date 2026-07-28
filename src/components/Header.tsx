@@ -67,7 +67,20 @@ export const Header = ({
       style={{ zIndex: 100 }}
       onMouseLeave={() => setActiveDesktopNav(null)}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-8 h-20 flex items-center justify-between relative z-10 bg-inherit gap-4">
+      {/*
+        `min-w-0` on the row and on the nav below it. Without it a flex child refuses to shrink
+        below its content width, and since the nav items are `whitespace-nowrap` that content
+        width is whatever the longest label happens to be — so the header simply overflowed the
+        page. In French it did: "Services et paiements", "Administration municipale" and "Notre
+        communauté" are roughly 40% longer than their English equivalents, and the row pushed
+        past the viewport and forced the whole page to scroll sideways.
+
+        The lesson generalises past this one bug: any layout sized around English label lengths
+        is a layout that breaks the moment it is translated, and on a bilingual municipal site
+        that is not an edge case. Sizes below step down at `lg` and back up at `xl` so the row
+        fits the longer language at every desktop width rather than only the shorter one.
+      */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-8 h-20 flex items-center justify-between relative z-10 bg-inherit gap-2 xl:gap-4 min-w-0">
         <a href="#" className="flex items-center gap-3 shrink-0">
           {hasLogo ? (
             <img src={NORTH_BAY_LOGO_URL} alt={t('title')} className="h-12 w-auto" />
@@ -88,7 +101,7 @@ export const Header = ({
           wayfinding on the entire site; at 14px against a navy field they read as secondary
           chrome, which is the opposite of their role.
         */}
-        <nav className="hidden lg:flex h-full" aria-label="Main">
+        <nav className="hidden lg:flex h-full min-w-0" aria-label="Main">
           {navCategories.map((category) => (
             <button
               type="button"
@@ -97,7 +110,7 @@ export const Header = ({
               onFocus={() => setActiveDesktopNav(category)}
               aria-expanded={activeDesktopNav === category}
               aria-haspopup="true"
-              className={`px-3 xl:px-5 h-full font-bold text-base whitespace-nowrap flex items-center gap-1.5 transition-colors border-b-4 nb-focus-ring-navy dark:focus-visible:outline dark:focus-visible:outline-2 dark:focus-visible:outline-blue-400 ${headerFgClass} ${
+              className={`px-2 xl:px-4 h-full font-bold text-sm xl:text-base whitespace-nowrap flex items-center gap-1 transition-colors border-b-4 nb-focus-ring-navy dark:focus-visible:outline dark:focus-visible:outline-2 dark:focus-visible:outline-blue-400 ${headerFgClass} ${
                 activeDesktopNav === category
                   ? hasLogo
                     ? 'border-white bg-white/10'
@@ -129,8 +142,13 @@ export const Header = ({
             fade: a control that is invisible must not still be a tab stop, or a keyboard user
             lands on a field they cannot see.
           */}
+          {/*
+            `xl` rather than `lg`: between 1024 and 1280px the nav and this field compete for the
+            same row, and in French there is not room for both. Search is still reachable there —
+            the hero field is a scroll away, and the mobile menu carries its own.
+          */}
           <div
-            className={`hidden lg:block w-64 transition-opacity duration-200 ${
+            className={`hidden xl:block w-56 transition-opacity duration-200 ${
               showHeaderSearch ? 'opacity-100' : 'opacity-0 pointer-events-none'
             }`}
             aria-hidden={!showHeaderSearch}

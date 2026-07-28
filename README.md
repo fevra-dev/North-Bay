@@ -97,7 +97,7 @@ So the photograph never sits directly behind text. A navy scrim covers it at a f
 putting a known colour behind every character regardless of what the image does underneath. And
 the result is measured rather than assumed: the test suite hides the hero text, screenshots the
 band, finds the **lightest pixel in it** — the worst case for white text anywhere — and computes
-the real contrast. Currently **5.7:1 in light mode and 10.4:1 in dark**, against a 4.5:1 floor.
+the real contrast. Currently **5.1:1 in light mode and 10.4:1 in dark**, against a 4.5:1 floor.
 A future change to the photo or the scrim cannot silently break legibility.
 
 Data-saver mode drops the photograph entirely. It is the heaviest asset on the page, and the
@@ -137,7 +137,7 @@ bilingual municipal site they are what a francophone resident is scanning for.
 
 ## Verifying it, rather than asserting it
 
-`tests/verify.mjs` drives a real browser (Playwright) through **47 assertions** across desktop
+`tests/verify.mjs` drives a real browser (Playwright) through **55 assertions** across desktop
 and mobile viewports — the theme toggle repainting, dark mode surviving a reload, the focus trap
 holding across 50 Tab presses in both directions, combobox arrow-key wrapping, `<html lang>`
 switching, landmark structure, heading order, CSV export, zero horizontal overflow at 390px, the
