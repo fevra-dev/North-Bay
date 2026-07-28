@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AccessibilityStatement } from './components/AccessibilityStatement';
 import { AlertBanner } from './components/AlertBanner';
-import { Breadcrumbs } from './components/Breadcrumbs';
+import { CityServices } from './components/CityServices';
 import { CurrentConditions } from './components/CurrentConditions';
 import { DashboardGrid } from './components/DashboardGrid';
 import { FeedbackWidget } from './components/FeedbackWidget';
@@ -9,6 +9,7 @@ import { Footer } from './components/Footer';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
 import { MeetingRegistry } from './components/MeetingRegistry';
+import { MunicipalDashboard } from './components/MunicipalDashboard';
 import { SkipLink } from './components/SkipLink';
 import { TaskWizard, type WizardState } from './components/TaskWizard';
 import type { MeetingFilter } from './data/feeds';
@@ -42,10 +43,11 @@ export default function App() {
   const [meetingFilter, setMeetingFilter] = useState<MeetingFilter>('All');
   const [wizard, setWizard] = useState<WizardState>({ isOpen: false, step: 1, title: '' });
   const [isA11yStatementOpen, setIsA11yStatementOpen] = useState(false);
+  const [showHeaderSearch, setShowHeaderSearch] = useState(false);
 
   const wizardPanelRef = useRef<HTMLDivElement>(null);
   const a11yDialogRef = useRef<HTMLDivElement>(null);
-  const searchSectionRef = useRef<HTMLDivElement>(null);
+  const heroSearchRef = useRef<HTMLDivElement>(null);
 
   const isAnyDialogOpen = wizard.isOpen || isA11yStatementOpen;
 
@@ -54,6 +56,29 @@ export default function App() {
 
   // The accessibility statement's trap. The wizard owns its own, keyed to its step.
   useFocusTrap(a11yDialogRef, isA11yStatementOpen);
+
+  /*
+    PERSISTENT SEARCH, without duplicating it.
+
+    The header's compact search field appears only once the hero's own search has scrolled out
+    of view, so search is always reachable but two identical fields are never on screen at once.
+
+    IntersectionObserver rather than a scroll listener: the browser reports the crossing itself
+    instead of the page recomputing geometry on every scroll frame, which on a long municipal
+    homepage is the difference between a smooth scroll and a janky one on a mid-range phone.
+  */
+  useEffect(() => {
+    const target = heroSearchRef.current;
+    if (!target) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setShowHeaderSearch(!entry.isIntersecting),
+      // Fires when the hero field passes behind the 80px-tall sticky header, not when it leaves
+      // the viewport entirely — otherwise there is a gap with no search reachable at all.
+      { rootMargin: '-80px 0px 0px 0px', threshold: 0 },
+    );
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, []);
 
   /*
     One Escape press closes whatever is currently on top: a dialog first, then the mobile menu,
@@ -101,12 +126,6 @@ export default function App() {
     // statement's "known issues" section states outright rather than leaving to be discovered.
   }, []);
 
-  const jumpToSearch = useCallback(() => {
-    const input = searchSectionRef.current?.querySelector('input');
-    input?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    input?.focus();
-  }, []);
-
   // Data-saver mode swaps to a system font stack and drops transitions, on top of skipping
   // non-essential imagery in the cards themselves.
   const bandwidthClass = isLowBandwidth
@@ -133,24 +152,44 @@ export default function App() {
         setActiveDesktopNav={setActiveDesktopNav}
         expandedMobileCategory={expandedMobileCategory}
         toggleMobileCategory={toggleMobileCategory}
-        onJumpToSearch={jumpToSearch}
+        showHeaderSearch={showHeaderSearch}
         t={t}
         tCategory={tCategory}
       />
-
-      <Breadcrumbs t={t} />
 
       <main id="main-content" tabIndex={-1} className="focus:outline-none">
         <Hero
           t={t}
           getLabel={getLabel}
           onTaskSelect={handleTaskSelect}
-          searchSectionRef={searchSectionRef}
+          searchSectionRef={heroSearchRef}
         />
-        <CurrentConditions t={t} />
+
+        {/*
+          City Services and current conditions share one row rather than stacking.
+
+          Both answer "what do I need to do or know right now", and they are the two things the
+          City itself puts side by side at the top of its homepage. Stacking them would push the
+          fire-danger reading below the fold on a laptop for no benefit; `items-stretch` keeps
+          the two cards the same height so the row reads as one band rather than two leftovers.
+
+          The row sits below the hero's rule rather than overlapping it. The original single
+          full-width card was pulled up over that rule deliberately, but with two cards the gap
+          between them let the rule show straight through, which reads as a rendering fault
+          rather than as an intentional overlap.
+        */}
+        <section
+          aria-label={t('cityServices')}
+          className="print:hidden max-w-7xl mx-auto px-4 sm:px-8 py-8 grid gap-6 lg:grid-cols-2 items-stretch"
+        >
+          <CityServices t={t} getLabel={getLabel} />
+          <CurrentConditions t={t} />
+        </section>
+
         <DashboardGrid t={t} isLowBandwidth={isLowBandwidth} />
         <MeetingRegistry t={t} filter={meetingFilter} setFilter={setMeetingFilter} />
         <FeedbackWidget t={t} />
+        <MunicipalDashboard t={t} />
       </main>
 
       <Footer t={t} onOpenAccessibilityStatement={() => setIsA11yStatementOpen(true)} />

@@ -52,48 +52,132 @@ export const quickTasks: readonly QuickTask[] = [
 ];
 
 /**
- * The four top-level navigation categories and what sits under each. English names are the
- * stable keys the app looks up by; `categoryTranslations` supplies the display name.
+ * The four top-level navigation categories and what sits under each.
+ *
+ * The item lists mirror the City's own published taxonomy rather than an invented one — this is
+ * a redesign of an information architecture, not a replacement of the services behind it, and
+ * a nav full of plausible-looking made-up pages would misrepresent what the City actually does.
+ * English names are the stable keys the app looks up by; `categoryTranslations` supplies the
+ * display name.
+ *
+ * Each category also carries a one-line description, the way the City's own mega menus do. A
+ * heading alone ("Business") makes a visitor guess whether they are in the right place; a
+ * sentence tells them.
  */
 export const siteStructure: Readonly<Record<NavCategory, readonly string[]>> = {
   'Services & Payments': [
     'Births, Marriages & Deaths',
     'Building & Development',
     'Court Services',
+    'Customer Service Centre',
     'Forms, Permits & Licenses',
     'Garbage & Recycling',
+    'North Bay Fire and Emergency Services',
     'North Bay Transit',
     'Parking',
     'Property Taxes',
     'Report a Problem',
+    'Streets & Sidewalks',
     'Water & Wastewater',
   ],
   Business: [
     'Bid Opportunities',
     'Economic Development',
+    'Film North Bay',
+    'Funding Access Strategy Team',
     'Local Economy',
     'Municipal Incentives',
+    'Real Estate',
+    'Sponsorship and Advertising Opportunities',
     'Start & Grow a Business',
-    'Film North Bay',
   ],
   'City Government': [
-    'Mayor & Council',
-    'Meetings, Agendas & Minutes',
+    '2026 Elections',
+    'Accessibility',
+    'Budget and Finance',
     'By-Laws',
     'Careers',
     'Departments',
-    'Municipal Elections',
-    'Freedom of Information',
+    'Freedom of Information Requests',
+    'Land Acknowledgement',
+    'Mayor & Council',
+    'Media Room',
+    'Meetings, Agendas & Minutes',
+    'Municipal Dashboard',
+    'Organization Chart',
+    'Plans & Studies',
+    'Projects & Public Engagement',
   ],
   'Our Community': [
     'About North Bay',
+    'Active Transportation',
     'Arts, Heritage & Culture',
+    'Bay Cams & Weather Forecast',
+    'Community Safety and Well-Being',
+    'Environment & Sustainability',
     'Events & Programs',
+    'Explore North Bay - GIS Portal',
+    'Housing in North Bay',
+    'Immigration',
+    'Marina',
     'Parks, Playgrounds & Trails',
     'Recreational Activities',
-    'Community Safety',
+    'Sports Facilities',
   ],
+};
+
+/**
+ * One-line orientation for each mega menu, taken from the City's own wording. Kept English-only
+ * for the same reason as the nav items: in a real deployment these are CMS content fields.
+ */
+export const categoryDescriptions: Readonly<Record<NavCategory, string>> = {
+  'Services & Payments': 'Access information about the service you need all right here.',
+  Business: 'Grow your business in North Bay.',
+  'City Government':
+    "Information about the City's governance such as organization structure, council meetings, budgets and financial reports and more.",
+  'Our Community':
+    'Information about our community, the activities that happen here, and facilities that support it.',
 };
 
 /** Iteration order for the nav. Derived from the structure so the two cannot drift apart. */
 export const navCategories = Object.keys(siteStructure) as NavCategory[];
+
+/**
+ * CITY SERVICES — the four highest-traffic transactions, surfaced as direct buttons.
+ *
+ * These are the four the City itself promotes at the top of its homepage, and that agreement is
+ * the point: the "I want to…" selector below covers the long tail of resident intents, while
+ * these four are frequent enough to deserve a permanent target rather than a dropdown someone
+ * has to open and read first. Two ways in, serving genuinely different traffic — not the same
+ * list rendered twice.
+ */
+export interface CityService {
+  readonly label: LocalizedLabel;
+  readonly href: string;
+}
+
+export const cityServices: readonly CityService[] = [
+  { label: { en: 'Plan a Transit Route', fr: 'Planifier un trajet' }, href: '#' },
+  { label: { en: 'Report an Issue', fr: 'Signaler un problème' }, href: '#' },
+  {
+    label: { en: 'Apply for a Building Permit', fr: 'Demander un permis de construire' },
+    href: '#',
+  },
+  { label: { en: 'Explore Careers', fr: 'Explorer les carrières' }, href: '#' },
+];
+
+/**
+ * Social channels. The City posts service disruptions to these faster than anywhere else, which
+ * is why they belong in the footer of every page rather than only on a contact page.
+ */
+export interface SocialLink {
+  readonly name: string;
+  readonly href: string;
+}
+
+export const socialLinks: readonly SocialLink[] = [
+  { name: 'Facebook', href: 'https://www.facebook.com/cityofnorthbay' },
+  { name: 'X', href: 'https://twitter.com/cityofnorthbay' },
+  { name: 'Instagram', href: 'https://www.instagram.com/cityofnbay/' },
+  { name: 'YouTube', href: 'https://www.youtube.com/c/thecityofnorthbay' },
+];

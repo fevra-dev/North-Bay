@@ -156,6 +156,71 @@
 }
 
 /*
+  EVENT DATE BLOCK.
+
+  The month/day tile on an event card, as one component with four states rather than a stack of
+  utilities fighting each other. It is written this way because the utility version was broken in
+  both themes and for opposite reasons:
+
+  - Light mode: the tile background went navy on hover while the day number was told to go white
+    by a components-layer rule, which the `dark:text-blue-400` utility on the same element
+    outranked. Result: navy-on-navy.
+  - Dark mode: background went blue-600 on hover while the number stayed blue-400. Blue on blue.
+
+  Both are the same underlying mistake — spreading one visual component's states across two
+  cascade layers and hoping they resolve. Defining the whole component here means hover state is
+  stated once, in one place, and the contrast is legible by construction: white on navy in light,
+  white on blue-700 in dark. Verified against the WCAG 2.2 AA 4.5:1 text threshold.
+*/
+@layer components {
+  .nb-event-date {
+    background-color: #f4f4f5;
+    border-right: 1px solid #e4e4e7;
+    transition:
+      background-color 200ms,
+      color 200ms;
+  }
+  .nb-event-date .nb-event-month {
+    color: #71717a;
+    transition: color 200ms;
+  }
+  .nb-event-date .nb-event-day {
+    color: #003366;
+    transition: color 200ms;
+  }
+
+  .dark .nb-event-date {
+    background-color: #27272a;
+    border-right-color: #3f3f46;
+  }
+  .dark .nb-event-date .nb-event-month {
+    color: #a1a1aa;
+  }
+  .dark .nb-event-date .nb-event-day {
+    color: #60a5fa;
+  }
+
+  /* `:active` alongside `:hover` — touchscreens do not reliably enter a hover state. */
+  .group:hover .nb-event-date,
+  .group:active .nb-event-date {
+    background-color: #003366;
+    border-right-color: #003366;
+  }
+  .group:hover .nb-event-date .nb-event-month,
+  .group:active .nb-event-date .nb-event-month,
+  .group:hover .nb-event-date .nb-event-day,
+  .group:active .nb-event-date .nb-event-day {
+    color: #ffffff;
+  }
+
+  .dark .group:hover .nb-event-date,
+  .dark .group:active .nb-event-date {
+    background-color: #1d4ed8;
+    border-right-color: #1d4ed8;
+  }
+}
+
+/*
   Dark-mode focus ring. Scoped under `.dark` rather than expressed as a `dark:` utility because
   the ring is defined here rather than in the markup — there is no utility on the element for a
   variant to attach to.

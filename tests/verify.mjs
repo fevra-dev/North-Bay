@@ -68,7 +68,9 @@ await page.waitForTimeout(250);
 await page.screenshot({ path: `${SHOTS}/desktop-light.png`, fullPage: false });
 
 // 4. Search combobox + arrow keys
-const search = page.locator('#\\:r0\\:-input, input[role="combobox"]').first();
+// Scoped to <main>: the header now carries its own combobox that appears on scroll, and it sits
+// earlier in the DOM, so an unscoped `.first()` would target the hidden one.
+const search = page.locator('main input[role="combobox"]').first();
 await search.click();
 await search.fill('park');
 await page.waitForTimeout(300);
@@ -162,6 +164,115 @@ check(
   JSON.stringify(skipVisible),
 );
 
+// 8b. PERSISTENT HEADER SEARCH — hidden at the top, revealed once the hero search scrolls away,
+// and never a tab stop while it is invisible.
+await page.evaluate(() => window.scrollTo(0, 0));
+await page.waitForTimeout(400);
+const headerSearchState = () =>
+  page.evaluate(() => {
+    const input = document.querySelector('header input[role="combobox"]');
+    if (!input) return null;
+    const wrap = input.closest('[aria-hidden]');
+    return {
+      opacity: getComputedStyle(wrap).opacity,
+      ariaHidden: wrap.getAttribute('aria-hidden'),
+      tabIndex: input.tabIndex,
+    };
+  });
+const atTop = await headerSearchState();
+check('header search hidden at top of page', atTop?.opacity === '0', JSON.stringify(atTop));
+check(
+  'hidden header search is not tabbable',
+  atTop?.tabIndex === -1,
+  `tabIndex=${atTop?.tabIndex}`,
+);
+
+await page.evaluate(() => window.scrollTo(0, 1200));
+await page.waitForTimeout(500);
+const scrolled = await headerSearchState();
+check('header search appears on scroll', scrolled?.opacity === '1', JSON.stringify(scrolled));
+check(
+  'revealed header search is tabbable',
+  scrolled?.tabIndex !== -1,
+  `tabIndex=${scrolled?.tabIndex}`,
+);
+
+// 8c. City Services quick actions
+const cityServiceLinks = await page.evaluate(() =>
+  [...document.querySelectorAll('section[aria-label] a')]
+    .map((a) => a.textContent.trim())
+    .filter(Boolean),
+);
+check(
+  'City Services exposes four quick actions',
+  cityServiceLinks.length >= 4,
+  cityServiceLinks.slice(0, 4).join(' | '),
+);
+
+// 8d. Municipal Dashboard
+check(
+  'municipal dashboard section present',
+  (await page.locator('#municipal-dashboard-heading').count()) === 1,
+);
+
+// 8e. Social links open safely and are individually named
+const socials = await page.evaluate(() =>
+  [...document.querySelectorAll('footer a[target="_blank"]')].map((a) => ({
+    href: a.getAttribute('href'),
+    rel: a.getAttribute('rel'),
+    name: a.textContent.trim(),
+  })),
+);
+check('four social links in footer', socials.length === 4, socials.map((s) => s.name).join(', '));
+check(
+  'every social link is rel=noopener noreferrer',
+  socials.every((s) => (s.rel || '').includes('noopener') && (s.rel || '').includes('noreferrer')),
+  socials.map((s) => s.rel).join(' | '),
+);
+check(
+  'social links point at the City accounts',
+  socials.every((s) => /northbay|cityofnbay|thecityofnorthbay/i.test(s.href || '')),
+  socials.map((s) => s.href).join(' '),
+);
+
+// 8f. Author name must not appear anywhere in the rendered page
+const bodyText = await page.evaluate(() => document.body.innerText);
+check('author name not rendered on the page', !/calarco/i.test(bodyText));
+
+// 8g. EVENT DATE TILE — the hover bug in both themes. Text must not match its own background.
+const eventHoverContrast = async (label) => {
+  await page.evaluate(() =>
+    document.querySelector('.nb-event-date')?.scrollIntoView({ block: 'center' }),
+  );
+  await page.waitForTimeout(250);
+  await page.locator('a:has(.nb-event-date)').first().hover();
+  await page.waitForTimeout(350);
+  const c = await page.evaluate(() => {
+    const tile = document.querySelector('.nb-event-date');
+    return {
+      bg: getComputedStyle(tile).backgroundColor,
+      month: getComputedStyle(tile.querySelector('.nb-event-month')).color,
+      day: getComputedStyle(tile.querySelector('.nb-event-day')).color,
+    };
+  });
+  check(
+    `event date tile readable on hover (${label})`,
+    c.day !== c.bg && c.month !== c.bg && c.day === 'rgb(255, 255, 255)',
+    JSON.stringify(c),
+  );
+};
+await eventHoverContrast('light');
+
+// 8h. Fire gauge needle must contrast with its card in both themes
+const needleColor = () =>
+  page.evaluate(() => {
+    const svg = [...document.querySelectorAll('svg')].find(
+      (s) => s.querySelector('title')?.textContent === 'Fire danger gauge',
+    );
+    return svg ? getComputedStyle(svg.querySelector('line')).stroke : null;
+  });
+const lightNeedle = await needleColor();
+
 // 9. Accessibility statement dialog from footer
 await page.getByRole('button', { name: /Accessibilit/i }).click();
 await page.waitForTimeout(400);
@@ -180,6 +291,19 @@ check(
   download !== null,
   download ? await download.suggestedFilename() : 'no download event',
 );
+
+// 10b. Dark-theme checks that only make sense with the theme actually on.
+await page.getByRole('button', { name: /switch to dark mode/i }).click();
+await page.waitForTimeout(400);
+const darkNeedle = await needleColor();
+check(
+  'gauge needle changes colour between themes',
+  Boolean(lightNeedle && darkNeedle && lightNeedle !== darkNeedle),
+  `light=${lightNeedle} dark=${darkNeedle}`,
+);
+await eventHoverContrast('dark');
+await page.getByRole('button', { name: /switch to light mode/i }).click();
+await page.waitForTimeout(300);
 
 // 11. Landmarks
 const landmarks = await page.evaluate(() => ({

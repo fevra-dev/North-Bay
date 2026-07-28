@@ -81,9 +81,30 @@ their own redesigns, rather than derived from assumption:
 ### Two horizontal bars instead of three
 
 The original layout stacked three full-width bars before any content appeared. The utility
-controls (language, theme, data saver, account) fold into the header itself on desktop and into
-the menu panel on mobile, recovering roughly a screen and a half of vertical space above the fold
-on a phone.
+controls (language, theme, data saver) fold into the header itself on desktop and into the menu
+panel on mobile, recovering roughly a screen and a half of vertical space above the fold on a
+phone.
+
+### Search that stays reachable
+
+The hero carries the primary search. Once it scrolls out of view a compact field fades into the
+sticky header, so search is available from anywhere on the page without two identical search
+boxes ever being visible at once. The hidden field is removed from the tab order while it is
+invisible — a control a keyboard user can reach but not see is worse than no control at all.
+
+### Two ways in, for two kinds of traffic
+
+**City Services** surfaces the four highest-frequency transactions as permanent one-click targets
+— the same four the City promotes on its own homepage. The **"I want to…"** selector beside it
+covers the long tail of resident intents. They sit side by side with the fire-danger reading
+because all of it answers "what do I need to do or know right now", and stacking it would push
+half of it below the fold for no gain.
+
+### Language toggle that says what it does
+
+`FR` / `EN`, not a globe icon. A globe says "language settings are somewhere in here" and needs a
+hover to reveal which language it switches to. Two letters say exactly what happens, and on a
+bilingual municipal site they are what a francophone resident is scanning for.
 
 ### Details that only show up on a real device
 
@@ -98,10 +119,13 @@ on a phone.
 
 ## Verifying it, rather than asserting it
 
-`tests/verify.mjs` drives a real browser (Playwright) through **31 assertions** across desktop
+`tests/verify.mjs` drives a real browser (Playwright) through **44 assertions** across desktop
 and mobile viewports — the theme toggle repainting, dark mode surviving a reload, the focus trap
 holding across 50 Tab presses in both directions, combobox arrow-key wrapping, `<html lang>`
-switching, landmark structure, heading order, CSV export, and zero horizontal overflow at 390px.
+switching, landmark structure, heading order, CSV export, zero horizontal overflow at 390px, the
+header search appearing on scroll and staying out of the tab order while hidden, social links
+carrying `rel="noopener noreferrer"`, and text-on-background contrast for the two elements whose
+hover states were previously unreadable.
 
 ```bash
 npm run dev          # in one terminal
@@ -158,6 +182,15 @@ each of which looked fine and did nothing:
    by moving them into `@layer components`, where Tailwind's layer order does the work.
 4. **The mobile search field was inert** — it accepted typing and had no state behind it, on the
    viewport most residents arrive from. It now shares one component with the hero search.
+
+A second pass, once dark mode was working and the bugs it had been hiding became visible:
+
+5. **The fire-danger needle was `#111111`** — the one element carrying the actual reading,
+   near-invisible against the dark card. It now inherits `currentColor`, so it cannot fall out of
+   step with the surface behind it again.
+6. **The event date tile was unreadable on hover in both themes**, for opposite reasons: navy on
+   navy in light, blue on blue in dark. Both traced to one component's states being spread across
+   two cascade layers. It is now a single component class with its states defined in one place.
 
 ## Licence and attribution
 

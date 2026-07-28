@@ -1,4 +1,4 @@
-import { ChevronDown, Globe, Moon, Sun, UserCircle, WifiOff } from 'lucide-react';
+import { ChevronDown, Moon, Sun, WifiOff } from 'lucide-react';
 import type { Language, NavCategory, TranslationKey } from '../data/i18n';
 import { navCategories, siteStructure } from '../data/navigation';
 import { SearchCombobox } from './SearchCombobox';
@@ -73,17 +73,20 @@ export const MobileMenu = ({
               />
               {isLowBandwidth ? 'Standard' : 'Data Saver'}
             </button>
+            {/*
+              lang attribute on the label: "Français" is a French string even while the
+              surrounding page is English, and without this a screen reader pronounces it with
+              English phonetics. WCAG 2.2 AA, SC 3.1.2 (Language of Parts).
+            */}
             <button
               type="button"
               onClick={toggleLanguage}
+              aria-label={lang === 'en' ? 'Switch to French' : 'Switch to English'}
               className="flex flex-col items-center gap-1.5 text-xs font-bold text-zinc-600 dark:text-zinc-300 nb-focus-ring-navy rounded-sm px-1"
             >
-              <Globe size={20} aria-hidden="true" />
-              {/*
-                lang attribute on the label itself: the word "Français" is French even while the
-                surrounding page is English, and without this a screen reader pronounces it with
-                English phonetics. WCAG 2.2 AA, SC 3.1.2 (Language of Parts).
-              */}
+              <span className="text-lg font-black leading-none" aria-hidden="true">
+                {lang === 'en' ? 'FR' : 'EN'}
+              </span>
               <span lang={lang === 'en' ? 'fr' : 'en'}>
                 {lang === 'en' ? 'Français' : 'English'}
               </span>
@@ -102,12 +105,6 @@ export const MobileMenu = ({
               {isDarkMode ? 'Dark' : 'Light'}
             </button>
           </div>
-          <button
-            type="button"
-            className="w-full flex items-center justify-center gap-1.5 text-white nb-bg-navy dark:bg-blue-600 py-3 text-sm font-bold nb-hover-navy-dark dark:hover:bg-blue-700 transition-colors"
-          >
-            <UserCircle size={16} aria-hidden="true" /> {t('sso')}
-          </button>
         </div>
 
         <div className="mb-6">

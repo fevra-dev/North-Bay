@@ -68,19 +68,39 @@ export interface NewsItem {
   readonly urgent: boolean;
 }
 
+/**
+ * Headlines follow the City's own house style, which is worth matching precisely: specific
+ * street names, a concrete date in the headline where one exists, and plain declarative phrasing
+ * rather than promotional language. "Final Paving on McKeown Avenue Begins Monday" tells a
+ * resident whether it affects them before they click; "Exciting Road Improvements!" does not.
+ */
 export const newsFeed: readonly NewsItem[] = [
   {
     id: 'n1',
     category: 'Notice',
     title: 'Road Closure: Main Street Revitalization',
-    date: 'July 8, 2026',
+    date: 'July 27, 2026',
     urgent: true,
   },
   {
     id: 'n2',
+    category: 'Roads',
+    title: 'Sidewalk Improvements at Lakeshore Drive and Mulligan Avenue',
+    date: 'July 25, 2026',
+    urgent: false,
+  },
+  {
+    id: 'n3',
     category: 'Housing',
-    title: 'City secures $336,000 Building Faster Fund',
-    date: 'July 10, 2026',
+    title: 'City Secures $336,000 from the Building Faster Fund',
+    date: 'July 21, 2026',
+    urgent: false,
+  },
+  {
+    id: 'n4',
+    category: 'Project',
+    title: 'Recreation Centre On Track to Open August 2026',
+    date: 'July 17, 2026',
     urgent: false,
   },
 ];

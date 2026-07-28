@@ -23,7 +23,7 @@ export const DashboardGrid = ({ t, isLowBandwidth }: DashboardGridProps) => (
       <div className="space-y-6">
         <div className="flex items-center justify-between border-b-2 nb-border-ink dark:border-zinc-700 pb-3 mb-6">
           <h2 className="text-xl font-black flex items-center gap-2 text-zinc-900 dark:text-white">
-            <FileText size={20} aria-hidden="true" /> {t('civicUpdates')}
+            <FileText size={20} aria-hidden="true" /> {t('recentNews')}
           </h2>
           <a
             href="#"
@@ -67,7 +67,7 @@ export const DashboardGrid = ({ t, isLowBandwidth }: DashboardGridProps) => (
       <div className="space-y-6">
         <div className="flex items-center justify-between border-b-2 nb-border-ink dark:border-zinc-700 pb-3 mb-6">
           <h2 className="text-xl font-black flex items-center gap-2 text-zinc-900 dark:text-white">
-            <Calendar size={20} aria-hidden="true" /> {t('upcomingEvents')}
+            <Calendar size={20} aria-hidden="true" /> {t('featuredEvents')}
           </h2>
           <a
             href="#"
@@ -107,16 +107,20 @@ export const DashboardGrid = ({ t, isLowBandwidth }: DashboardGridProps) => (
                   />
                 )}
                 <div className="flex">
+                  {/*
+                    One `nb-event-date` component class rather than a stack of utilities. See
+                    styles/index.css for why: the utility version produced navy-on-navy in light
+                    mode and blue-on-blue in dark, because the hover rules and the base colors
+                    sat in different cascade layers.
+                  */}
                   <div
-                    className="bg-zinc-100 dark:bg-zinc-800 border-r border-zinc-200 dark:border-zinc-700 px-4 py-3 flex flex-col items-center justify-center nb-group-hover-bg-navy dark:group-hover:bg-blue-600 dark:group-active:bg-blue-600 transition-colors"
+                    className="nb-event-date px-4 py-3 flex flex-col items-center justify-center"
                     style={{ minWidth: '80px' }}
                   >
-                    <span className="text-xs font-bold uppercase text-zinc-500 dark:text-zinc-400 group-hover:text-white group-active:text-white leading-none mb-1 transition-colors">
+                    <span className="nb-event-month text-xs font-bold uppercase leading-none mb-1">
                       {month}
                     </span>
-                    <span className="text-2xl font-black nb-text-navy dark:text-blue-400 nb-group-hover-white leading-none transition-colors">
-                      {day}
-                    </span>
+                    <span className="nb-event-day text-2xl font-black leading-none">{day}</span>
                   </div>
                   <div className="p-4 flex-1">
                     <h3 className="font-bold text-sm mb-2 group-hover:underline group-active:underline text-zinc-900 dark:text-zinc-100">

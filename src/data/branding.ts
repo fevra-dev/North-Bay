@@ -9,10 +9,3 @@ import logoUrl from '../assets/north-bay-logo.png';
  * fallback is kept working on purpose, so the layout never depends on having the asset.
  */
 export const NORTH_BAY_LOGO_URL: string = logoUrl;
-
-/**
- * This is an independent redesign concept, not the City's site and not affiliated with it.
- * Stated in the footer of the page itself and at the top of the README, so the distinction
- * survives the page being screenshotted, linked, or shared without surrounding context.
- */
-export const CONCEPT_AUTHOR = 'Mac Calarco';

@@ -23,7 +23,7 @@ interface HeroProps {
  * left the visitor to work out which mental model applied to which tab before clicking.
  */
 export const Hero = ({ t, getLabel, onTaskSelect, searchSectionRef }: HeroProps) => (
-  <section className="print:hidden bg-white dark:bg-zinc-900 border-b-2 nb-border-ink dark:border-zinc-700 pt-12 pb-16 px-4 sm:px-8">
+  <section className="print:hidden bg-white dark:bg-zinc-900 border-b-2 nb-border-ink dark:border-zinc-700 pt-12 pb-12 px-4 sm:px-8">
     <div className="max-w-4xl mx-auto">
       <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-8 text-center sm:text-left text-zinc-900 dark:text-white">
         {t('heroHeading')}

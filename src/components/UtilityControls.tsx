@@ -1,4 +1,4 @@
-import { Globe, Moon, Sun, WifiOff } from 'lucide-react';
+import { Moon, Sun, WifiOff } from 'lucide-react';
 import { NORTH_BAY_LOGO_URL } from '../data/branding';
 import type { Language } from '../data/i18n';
 
@@ -38,12 +38,11 @@ export const UtilityControls = ({
     hasLogo ? 'hover:bg-white/10' : 'hover:bg-slate-100 dark:hover:bg-zinc-800'
   }`;
 
+  // No divider rule here any more. There used to be one on the right, separating this cluster
+  // from the "My North Bay" button; with that button gone it was a line with nothing on the far
+  // side of it. The gap between controls already does the separating.
   return (
-    <div
-      className={`hidden lg:flex items-center gap-1 border-r pr-2 mr-1 ${
-        hasLogo ? 'border-white/20' : 'border-zinc-200 dark:border-zinc-700'
-      }`}
-    >
+    <div className="hidden lg:flex items-center gap-1">
       <button
         type="button"
         onClick={toggleLowBandwidth}
@@ -59,14 +58,28 @@ export const UtilityControls = ({
         />
       </button>
 
+      {/*
+        The language toggle reads "FR" / "EN" rather than showing a globe.
+
+        A globe icon says "language settings exist somewhere in here" and needs a hover or a
+        click to reveal which language it would switch to. Two letters say exactly what happens,
+        and — on a bilingual municipal site where a francophone resident is scanning for the one
+        control that matters most to them — they are recognizable at a glance without parsing an
+        icon at all. The `lang` attribute is set because "FR" is a French-language string sitting
+        in an English page: without it a screen reader spells it with English phonetics.
+      */}
       <button
         type="button"
         onClick={toggleLanguage}
         aria-label={lang === 'en' ? 'Switch to French' : 'Switch to English'}
         title={lang === 'en' ? 'Français' : 'English'}
-        className={`${buttonBase} ${headerFgClass}`}
+        className={`flex items-center justify-center min-w-9 h-9 px-2 rounded-sm text-sm font-black tracking-wide transition-colors focus:outline-none focus-visible:ring-2 nb-focus-ring-navy ${headerFgClass} ${
+          hasLogo ? 'hover:bg-white/10' : 'hover:bg-slate-100 dark:hover:bg-zinc-800'
+        }`}
       >
-        <Globe size={16} aria-hidden="true" />
+        <span lang={lang === 'en' ? 'fr' : 'en'} aria-hidden="true">
+          {lang === 'en' ? 'FR' : 'EN'}
+        </span>
       </button>
 
       <button

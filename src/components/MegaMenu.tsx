@@ -1,6 +1,6 @@
 import { ArrowRight } from 'lucide-react';
 import type { NavCategory } from '../data/i18n';
-import { siteStructure } from '../data/navigation';
+import { categoryDescriptions, siteStructure } from '../data/navigation';
 
 interface MegaMenuProps {
   category: NavCategory;
@@ -15,11 +15,24 @@ export const MegaMenu = ({ category, categoryLabel }: MegaMenuProps) => {
   return (
     <div className="hidden lg:block absolute top-full left-0 w-full bg-white dark:bg-zinc-900 border-b-2 nb-border-ink dark:border-zinc-700 shadow-2xl animate-in slide-in-from-top-2 duration-200">
       <div className="max-w-7xl mx-auto px-8 py-10">
-        <div className="flex items-baseline justify-between mb-8 border-b border-zinc-200 dark:border-zinc-700 pb-4">
-          <h2 className="text-2xl font-black nb-text-navy dark:text-blue-400">{categoryLabel}</h2>
+        <div className="flex items-start justify-between gap-8 mb-8 border-b border-zinc-200 dark:border-zinc-700 pb-4">
+          <div>
+            <h2 className="text-2xl font-black nb-text-navy dark:text-blue-400 mb-1">
+              {categoryLabel}
+            </h2>
+            {/*
+              A one-line description under each menu heading, as the City's own mega menus carry.
+              "Business" alone makes a visitor guess whether the section is for starting one,
+              paying one's taxes, or bidding on work; a sentence answers it before they scan
+              fifteen links looking for the answer.
+            */}
+            <p className="text-sm text-zinc-600 dark:text-zinc-400 max-w-2xl">
+              {categoryDescriptions[category]}
+            </p>
+          </div>
           <a
             href="#"
-            className="text-sm font-bold flex items-center gap-1 hover:underline text-zinc-900 dark:text-zinc-100"
+            className="shrink-0 text-sm font-bold flex items-center gap-1 hover:underline text-zinc-900 dark:text-zinc-100"
           >
             Directory <ArrowRight size={16} aria-hidden="true" />
           </a>

@@ -6,8 +6,17 @@ import { useSiteSearch } from '../hooks/useSiteSearch';
 interface SearchComboboxProps {
   /** Visible-to-screen-readers label and placeholder text. */
   placeholder: string;
-  /** `hero` is the large landing treatment; `compact` is the one inside the mobile menu. */
-  variant?: 'hero' | 'compact';
+  /**
+   * `hero` is the large landing treatment, `compact` sits inside the mobile menu, and `header`
+   * is the small persistent field that fades into the sticky header on scroll.
+   */
+  variant?: 'hero' | 'compact' | 'header';
+  /**
+   * Removes the field from the tab order. Used by the header instance while it is faded out —
+   * an invisible control that is still focusable strands a keyboard user on a field they cannot
+   * see, which is a worse failure than not having the field at all.
+   */
+  disabled?: boolean;
 }
 
 /**
@@ -31,7 +40,11 @@ interface SearchComboboxProps {
  * on the very viewport most residents actually arrive from. Sharing one component means the
  * two cannot drift apart again.
  */
-export const SearchCombobox = ({ placeholder, variant = 'hero' }: SearchComboboxProps) => {
+export const SearchCombobox = ({
+  placeholder,
+  variant = 'hero',
+  disabled = false,
+}: SearchComboboxProps) => {
   const {
     query,
     setQuery,
@@ -52,26 +65,31 @@ export const SearchCombobox = ({ placeholder, variant = 'hero' }: SearchCombobox
   const listboxId = `${id}-listbox`;
 
   const isHero = variant === 'hero';
+  const isHeader = variant === 'header';
 
   const onSelect = (entry: SearchEntry) => {
     setQuery(entry.title);
     close();
   };
 
+  const iconClass = isHero
+    ? 'absolute left-4 top-5 text-zinc-500 dark:text-zinc-400 pointer-events-none'
+    : isHeader
+      ? 'absolute left-3 top-2.5 text-zinc-500 dark:text-zinc-400 pointer-events-none'
+      : 'absolute left-4 top-4 text-zinc-500 pointer-events-none';
+
+  const inputClass = isHero
+    ? 'w-full bg-white dark:bg-zinc-950 border-2 nb-border-ink dark:border-zinc-600 nb-focus-ring-navy-all text-lg py-5 pl-12 pr-4 rounded-none outline-none placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-zinc-900 dark:text-zinc-100'
+    : isHeader
+      ? 'w-full bg-white dark:bg-zinc-900 border-2 border-transparent nb-focus-ring-navy-all text-sm py-2 pl-9 pr-3 rounded-none outline-none placeholder:text-zinc-500 text-zinc-900 dark:text-zinc-100'
+      : 'w-full bg-zinc-100 dark:bg-zinc-800 text-lg font-medium py-3 pl-12 pr-4 outline-none border-2 border-transparent nb-focus-border-navy text-zinc-900 dark:text-zinc-100';
+
   return (
     <div ref={containerRef} className={isHero ? 'relative flex-1 shadow-sm' : 'relative'}>
       <label htmlFor={inputId} className="sr-only">
         {placeholder}
       </label>
-      <Search
-        className={
-          isHero
-            ? 'absolute left-4 top-5 text-zinc-500 dark:text-zinc-400 pointer-events-none'
-            : 'absolute left-4 top-4 text-zinc-500 pointer-events-none'
-        }
-        size={isHero ? 24 : 20}
-        aria-hidden="true"
-      />
+      <Search className={iconClass} size={isHero ? 24 : isHeader ? 16 : 20} aria-hidden="true" />
       <input
         type="text"
         id={inputId}
@@ -87,11 +105,8 @@ export const SearchCombobox = ({ placeholder, variant = 'hero' }: SearchCombobox
           if (selected) onSelect(selected);
         }}
         placeholder={placeholder}
-        className={
-          isHero
-            ? 'w-full bg-white dark:bg-zinc-950 border-2 nb-border-ink dark:border-zinc-600 nb-focus-ring-navy-all text-lg py-5 pl-12 pr-4 rounded-none outline-none placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-zinc-900 dark:text-zinc-100'
-            : 'w-full bg-zinc-100 dark:bg-zinc-800 text-lg font-medium py-3 pl-12 pr-4 outline-none border-2 border-transparent nb-focus-border-navy text-zinc-900 dark:text-zinc-100'
-        }
+        tabIndex={disabled ? -1 : undefined}
+        className={inputClass}
       />
 
       {/*
