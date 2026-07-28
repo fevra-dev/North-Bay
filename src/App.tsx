@@ -163,6 +163,7 @@ export default function App() {
           getLabel={getLabel}
           onTaskSelect={handleTaskSelect}
           searchSectionRef={heroSearchRef}
+          isLowBandwidth={isLowBandwidth}
         />
 
         {/*

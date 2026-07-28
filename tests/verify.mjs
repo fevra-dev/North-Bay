@@ -1,4 +1,18 @@
 import { chromium } from 'playwright';
+import { PNG } from 'pngjs';
+
+/*
+  Relative luminance and contrast ratio, per WCAG 2.x. Used to measure text legibility over the
+  hero photograph from real rendered pixels rather than from the colour values in the source —
+  the whole risk with a photographic background is that the composited result differs from what
+  the stylesheet appears to say.
+*/
+const srgb = (c) => {
+  const s = c / 255;
+  return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+};
+const luminance = (r, g, b) => 0.2126 * srgb(r) + 0.7152 * srgb(g) + 0.0722 * srgb(b);
+const contrastVsWhite = (l) => 1.05 / (l + 0.05);
 
 const APP_URL = process.env.NB_URL ?? 'http://localhost:5173/North-Bay/';
 const SHOTS = process.env.NB_SHOTS ?? new URL('./screenshots', import.meta.url).pathname;
@@ -164,6 +178,50 @@ check(
   JSON.stringify(skipVisible),
 );
 
+// 8a. HERO PHOTOGRAPH — white text over a photo is the classic municipal accessibility failure.
+// Measure the actual composited backdrop: hide the hero's own text, screenshot the section, and
+// find the LIGHTEST pixel in it — the worst case for white text anywhere in that band. The
+// contrast of white against that pixel has to clear 4.5:1 (SC 1.4.3). Sampling with the text
+// visible would measure antialiased glyph edges instead of the backdrop and report nonsense.
+const heroContrast = async () => {
+  const band = await page.evaluate(() => {
+    const r = document.querySelector('main section').getBoundingClientRect();
+    return { x: r.x, y: r.y, width: r.width, height: r.height };
+  });
+  await page.evaluate(() => {
+    for (const el of document.querySelectorAll('main section h1, main section .flex')) {
+      el.style.visibility = 'hidden';
+    }
+  });
+  await page.waitForTimeout(200);
+  const png = PNG.sync.read(await page.screenshot({ clip: band }));
+  let lightest = -1;
+  let rgb = null;
+  for (let i = 0; i < png.data.length; i += 4) {
+    const l = luminance(png.data[i], png.data[i + 1], png.data[i + 2]);
+    if (l > lightest) {
+      lightest = l;
+      rgb = [png.data[i], png.data[i + 1], png.data[i + 2]];
+    }
+  }
+  await page.evaluate(() => {
+    for (const el of document.querySelectorAll('main section h1, main section .flex')) {
+      el.style.visibility = '';
+    }
+  });
+  await page.waitForTimeout(150);
+  return { ratio: contrastVsWhite(lightest), rgb };
+};
+
+await page.evaluate(() => window.scrollTo(0, 0));
+await page.waitForTimeout(300);
+const heroLight = await heroContrast();
+check(
+  'hero text clears 4.5:1 over the photograph (light)',
+  heroLight.ratio >= 4.5,
+  `worst backdrop rgb(${heroLight.rgb}) → ${heroLight.ratio.toFixed(2)}:1`,
+);
+
 // 8b. PERSISTENT HEADER SEARCH — hidden at the top, revealed once the hero search scrolls away,
 // and never a tab stop while it is invisible.
 await page.evaluate(() => window.scrollTo(0, 0));
@@ -302,7 +360,35 @@ check(
   `light=${lightNeedle} dark=${darkNeedle}`,
 );
 await eventHoverContrast('dark');
+
+await page.evaluate(() => window.scrollTo(0, 0));
+await page.waitForTimeout(300);
+const heroDark = await heroContrast();
+check(
+  'hero text clears 4.5:1 over the photograph (dark)',
+  heroDark.ratio >= 4.5,
+  `worst backdrop rgb(${heroDark.rgb}) → ${heroDark.ratio.toFixed(2)}:1`,
+);
+
 await page.getByRole('button', { name: /switch to light mode/i }).click();
+await page.waitForTimeout(300);
+
+// 10c. Data-saver drops the hero photograph — it is the heaviest asset on the page, and the
+// point of the mode is that someone on a metered connection should not pay for atmosphere.
+const heroImgsBefore = await page.evaluate(
+  () => document.querySelectorAll('main section img').length,
+);
+await page.getByRole('button', { name: /data saver/i }).click();
+await page.waitForTimeout(400);
+const heroImgsAfter = await page.evaluate(
+  () => document.querySelectorAll('main section img').length,
+);
+check(
+  'data-saver mode drops all hero/section imagery',
+  heroImgsBefore > 0 && heroImgsAfter === 0,
+  `${heroImgsBefore} -> ${heroImgsAfter}`,
+);
+await page.getByRole('button', { name: /standard mode/i }).click();
 await page.waitForTimeout(300);
 
 // 11. Landmarks

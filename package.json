@@ -28,6 +28,7 @@
     "eslint-plugin-oxlint": "^0.15.0",
     "oxlint": "^0.15.0",
     "playwright": "^1.62.0",
+    "pngjs": "^7.0.0",
     "tailwindcss": "^4.0.0",
     "typescript": "^5.7.0",
     "vite": "^6.0.0"

@@ -85,6 +85,24 @@ controls (language, theme, data saver) fold into the header itself on desktop an
 panel on mobile, recovering roughly a screen and a half of vertical space above the fold on a
 phone.
 
+### A photograph behind the hero, without the usual accessibility failure
+
+The hero sits over an aerial of the North Bay waterfront. A hero image is where municipal sites
+most often quietly fail WCAG: white text is dropped onto a photo, it looks fine against the one
+region someone checked, and it becomes unreadable over a bright patch elsewhere — a cloud, a
+sunlit building, open water. The requirement (SC 1.4.3, 4.5:1) applies to the text against
+*whatever pixel is actually behind it*, not the average.
+
+So the photograph never sits directly behind text. A navy scrim covers it at a fixed opacity,
+putting a known colour behind every character regardless of what the image does underneath. And
+the result is measured rather than assumed: the test suite hides the hero text, screenshots the
+band, finds the **lightest pixel in it** — the worst case for white text anywhere — and computes
+the real contrast. Currently **5.7:1 in light mode and 10.4:1 in dark**, against a 4.5:1 floor.
+A future change to the photo or the scrim cannot silently break legibility.
+
+Data-saver mode drops the photograph entirely. It is the heaviest asset on the page, and the
+point of that mode is that someone on a metered connection should not pay for atmosphere.
+
 ### Search that stays reachable
 
 The hero carries the primary search. Once it scrolls out of view a compact field fades into the
@@ -119,7 +137,7 @@ bilingual municipal site they are what a francophone resident is scanning for.
 
 ## Verifying it, rather than asserting it
 
-`tests/verify.mjs` drives a real browser (Playwright) through **44 assertions** across desktop
+`tests/verify.mjs` drives a real browser (Playwright) through **47 assertions** across desktop
 and mobile viewports — the theme toggle repainting, dark mode surviving a reload, the focus trap
 holding across 50 Tab presses in both directions, combobox arrow-key wrapping, `<html lang>`
 switching, landmark structure, heading order, CSV export, zero horizontal overflow at 390px, the
