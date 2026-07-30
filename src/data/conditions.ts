@@ -1,3 +1,5 @@
+import type { LocalizedLabel } from './i18n';
+
 /**
  * CURRENT CONDITIONS.
  *
@@ -16,14 +18,14 @@
 
 export interface WinterConditions {
   readonly parkingBanActive: boolean;
-  readonly roadConditionSummary: string;
-  readonly updatedAt: string;
+  readonly roadConditionSummary: LocalizedLabel;
+  readonly updatedAt: LocalizedLabel;
 }
 
 export const winterConditions: WinterConditions = {
   parkingBanActive: false,
-  roadConditionSummary: 'Bare and dry',
-  updatedAt: '6:45 AM today',
+  roadConditionSummary: { en: 'Bare and dry', fr: 'Chaussée nue et sèche' },
+  updatedAt: { en: '6:45 AM today', fr: 'aujourd’hui à 6 h 45' },
 };
 
 /** Fire danger levels, low to extreme. Order is load-bearing: it drives the gauge geometry. */
@@ -32,7 +34,7 @@ export type FireDangerLevel = 'low' | 'medium' | 'high' | 'extreme';
 export interface FireConditions {
   readonly dangerLevel: FireDangerLevel;
   readonly banActive: boolean;
-  readonly updatedAt: string;
+  readonly updatedAt: LocalizedLabel;
 }
 
 /**
@@ -43,7 +45,7 @@ export interface FireConditions {
 export const fireConditions: FireConditions = {
   dangerLevel: 'high',
   banActive: false,
-  updatedAt: '6:45 AM today',
+  updatedAt: { en: '6:45 AM today', fr: 'aujourd’hui à 6 h 45' },
 };
 
 export type ConditionsSeason = 'winter' | 'fire';
@@ -56,9 +58,14 @@ export const currentConditionsSeason: ConditionsSeason = 'fire';
  * Non-text Contrast), and the level is always spelled out in text beside the gauge so the color
  * is never the sole carrier of the reading.
  */
-export const FIRE_DANGER_LEVELS: readonly { key: FireDangerLevel; color: string }[] = [
-  { key: 'low', color: '#16a34a' },
-  { key: 'medium', color: '#d97706' },
-  { key: 'high', color: '#ea580c' },
-  { key: 'extreme', color: '#dc2626' },
+export const FIRE_DANGER_LEVELS: readonly {
+  key: FireDangerLevel;
+  color: string;
+  /** Short band label drawn onto the dial. Kept terse so it fits the arc in both languages. */
+  short: LocalizedLabel;
+}[] = [
+  { key: 'low', color: '#16a34a', short: { en: 'LOW', fr: 'FAIBLE' } },
+  { key: 'medium', color: '#d97706', short: { en: 'MEDIUM', fr: 'MODÉRÉ' } },
+  { key: 'high', color: '#ea580c', short: { en: 'HIGH', fr: 'ÉLEVÉ' } },
+  { key: 'extreme', color: '#dc2626', short: { en: 'EXTREME', fr: 'EXTRÊME' } },
 ];

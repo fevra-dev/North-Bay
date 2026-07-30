@@ -68,8 +68,7 @@ export const FeedbackWidget = ({ t }: FeedbackWidgetProps) => {
         <div aria-live="polite">
           {sentiment === 'positive' && (
             <div className="flex items-center gap-3 text-green-800 dark:text-green-400 font-bold">
-              <CheckCircle2 size={20} aria-hidden="true" /> Thanks for letting us know this page
-              helped.
+              <CheckCircle2 size={20} aria-hidden="true" /> {t('thanksPositive')}
             </div>
           )}
 
@@ -81,16 +80,16 @@ export const FeedbackWidget = ({ t }: FeedbackWidgetProps) => {
                   className="nb-text-navy dark:text-blue-400"
                   aria-hidden="true"
                 />
-                Thanks. What made this page hard to use?
+                {t('thanksNegative')}
               </div>
               <label htmlFor="feedback-note" className="sr-only">
-                Tell us what made this page hard to use (optional)
+                {t('feedbackNoteLabel')}
               </label>
               <textarea
                 id="feedback-note"
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
-                placeholder="Optional: tell us more so we can fix it"
+                placeholder={t('feedbackPlaceholder')}
                 rows={2}
                 className="w-full bg-zinc-100 dark:bg-zinc-800 border-2 border-zinc-300 dark:border-zinc-600 nb-focus-border-navy dark:focus:border-blue-400 outline-none p-3 text-sm text-zinc-900 dark:text-zinc-100"
               />
@@ -99,14 +98,14 @@ export const FeedbackWidget = ({ t }: FeedbackWidgetProps) => {
                 onClick={() => setSentiment('submitted')}
                 className="self-start nb-bg-navy nb-hover-navy-dark dark:bg-blue-600 text-white px-5 py-2 text-sm font-bold transition-colors"
               >
-                Send feedback
+                {t('sendFeedback')}
               </button>
             </div>
           )}
 
           {sentiment === 'submitted' && (
             <p className="text-sm text-green-800 dark:text-green-400 font-bold flex items-center gap-2">
-              <CheckCircle2 size={16} aria-hidden="true" /> Feedback sent. Thank you.
+              <CheckCircle2 size={16} aria-hidden="true" /> {t('feedbackSent')}
             </p>
           )}
         </div>

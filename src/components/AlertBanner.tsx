@@ -1,5 +1,6 @@
 import { AlertCircle, ArrowRight } from 'lucide-react';
 import { alertSeverityStyles, siteAlert } from '../data/alerts';
+import { useTranslation } from '../hooks/useTranslation';
 
 /**
  * Site-wide alert. Both the color and the ARIA role are derived from the alert's severity, so
@@ -10,6 +11,7 @@ import { alertSeverityStyles, siteAlert } from '../data/alerts';
  * is not an accessible signal (WCAG 2.2 AA, SC 1.4.1).
  */
 export const AlertBanner = () => {
+  const { t } = useTranslation();
   if (!siteAlert.active) return null;
   const style = alertSeverityStyles[siteAlert.severity];
 
@@ -20,12 +22,12 @@ export const AlertBanner = () => {
     >
       <div className="flex items-center gap-2 max-w-7xl mx-auto w-full">
         <AlertCircle size={14} strokeWidth={2.5} className="shrink-0" aria-hidden="true" />
-        <span className="truncate">{siteAlert.message}</span>
+        <span className="truncate">{t('alertMessage')}</span>
         <a
           href={siteAlert.linkHref}
           className="flex items-center gap-1 hover:underline transition-colors shrink-0 ml-auto sm:ml-2 group"
         >
-          {siteAlert.linkLabel}
+          {t('alertLinkLabel')}
           <ArrowRight
             size={12}
             className="group-hover:translate-x-0.5 group-active:translate-x-0.5 transition-transform"

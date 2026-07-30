@@ -1,7 +1,14 @@
 import { Building, Database, Download, ExternalLink, Printer } from 'lucide-react';
 import { useMemo } from 'react';
-import { type MeetingFilter, meetingFilters, meetingsFeed } from '../data/feeds';
+import {
+  type MeetingFilter,
+  meetingFilterLabels,
+  meetingFilters,
+  meetingTypeLabels,
+  meetingsFeed,
+} from '../data/feeds';
 import type { TranslationKey } from '../data/i18n';
+import { useTranslation } from '../hooks/useTranslation';
 import { downloadCsv, toCsv } from '../lib/csv';
 
 interface MeetingRegistryProps {
@@ -21,14 +28,19 @@ interface MeetingRegistryProps {
  * readable file is the difference between publishing data and merely displaying it.
  */
 export const MeetingRegistry = ({ t, filter, setFilter }: MeetingRegistryProps) => {
+  const { getLabel } = useTranslation();
   const filteredMeetings = useMemo(
     () => (filter === 'All' ? meetingsFeed : meetingsFeed.filter((m) => m.type === filter)),
     [filter],
   );
 
   const handleExportCsv = () => {
-    const header = ['Date', 'Time', 'Meeting Type', 'Status'];
-    const rows = filteredMeetings.map((m) => [m.date, m.time, m.type, m.status]);
+    const header = [t('colDateTime'), t('colMeetingType'), t('colStatus')];
+    const rows = filteredMeetings.map((m) => [
+      `${m.date} ${getLabel(m.time)}`,
+      getLabel(meetingTypeLabels[m.type]),
+      getLabel(m.status),
+    ]);
     const slug = filter.toLowerCase().replace(/\s+/g, '-');
     downloadCsv(`north-bay-meetings-${slug}.csv`, toCsv(header, rows));
   };
@@ -77,7 +89,7 @@ export const MeetingRegistry = ({ t, filter, setFilter }: MeetingRegistryProps) 
               >
                 {meetingFilters.map((option) => (
                   <option key={option} value={option}>
-                    {option === 'All' ? 'All Meetings' : option}
+                    {getLabel(meetingFilterLabels[option])}
                   </option>
                 ))}
               </select>
@@ -98,9 +110,7 @@ export const MeetingRegistry = ({ t, filter, setFilter }: MeetingRegistryProps) 
         */}
         <div className="relative overflow-x-auto">
           <table className="w-full text-left border-collapse" style={{ minWidth: '800px' }}>
-            <caption className="sr-only">
-              Upcoming municipal meetings with agendas and livestream links
-            </caption>
+            <caption className="sr-only">{t('meetingsCaption')}</caption>
             <thead>
               <tr className="border-b-2 border-zinc-300 dark:border-zinc-700">
                 <th
@@ -108,28 +118,28 @@ export const MeetingRegistry = ({ t, filter, setFilter }: MeetingRegistryProps) 
                   style={{ width: '20%' }}
                   className="py-4 px-4 text-xs font-bold tracking-widest text-zinc-500 dark:text-zinc-500 uppercase"
                 >
-                  Date &amp; Time
+                  {t('colDateTime')}
                 </th>
                 <th
                   scope="col"
                   style={{ width: '30%' }}
                   className="py-4 px-4 text-xs font-bold tracking-widest text-zinc-500 dark:text-zinc-500 uppercase"
                 >
-                  Meeting Type
+                  {t('colMeetingType')}
                 </th>
                 <th
                   scope="col"
                   style={{ width: '20%' }}
                   className="py-4 px-4 text-xs font-bold tracking-widest text-zinc-500 dark:text-zinc-500 uppercase"
                 >
-                  Status
+                  {t('colStatus')}
                 </th>
                 <th
                   scope="col"
                   style={{ width: '30%' }}
                   className="print:hidden py-4 px-4 text-xs font-bold tracking-widest text-zinc-500 dark:text-zinc-500 uppercase text-right"
                 >
-                  Actions
+                  {t('colActions')}
                 </th>
               </tr>
             </thead>
@@ -152,20 +162,22 @@ export const MeetingRegistry = ({ t, filter, setFilter }: MeetingRegistryProps) 
                       >
                         {meeting.date}
                       </time>
-                      <div className="text-sm text-zinc-600 dark:text-zinc-400">{meeting.time}</div>
+                      <div className="text-sm text-zinc-600 dark:text-zinc-400">
+                        {getLabel(meeting.time)}
+                      </div>
                     </td>
                     <td className="py-4 px-4 align-top font-bold nb-text-navy dark:text-blue-400">
-                      {meeting.type}
+                      {getLabel(meetingTypeLabels[meeting.type])}
                     </td>
                     <td className="py-4 px-4 align-top">
                       <span
                         className={`text-xs font-bold px-2 py-1 border ${
-                          meeting.status === 'Notice Issued'
+                          meeting.status.en === 'Notice Issued'
                             ? 'bg-zinc-100 border-zinc-300 text-zinc-600 dark:bg-zinc-800 dark:border-zinc-600 dark:text-zinc-300'
                             : 'bg-green-50 border-green-200 text-green-700 dark:bg-green-900/30 dark:border-green-800 dark:text-green-400'
                         }`}
                       >
-                        {meeting.status}
+                        {getLabel(meeting.status)}
                       </span>
                     </td>
                     <td className="print:hidden py-4 px-4 align-top text-right">
@@ -186,15 +198,15 @@ export const MeetingRegistry = ({ t, filter, setFilter }: MeetingRegistryProps) 
                             <Download size={14} aria-hidden="true" />
                             {/* The link text alone would be four identical "Agenda" links to a
                                 screen reader running a link list; the meeting type disambiguates. */}
-                            Agenda
+                            {t('agendaLabel')}
                             <span className="sr-only">
                               {' '}
-                              for {meeting.type}, {meeting.date}
+                              — {getLabel(meetingTypeLabels[meeting.type])}, {meeting.date}
                             </span>
                           </a>
                         ) : (
                           <span className="text-xs text-zinc-400 dark:text-zinc-500 italic mr-2">
-                            Not yet available
+                            {t('notYetAvailable')}
                           </span>
                         )}
                         {meeting.videoUrl && (
@@ -203,10 +215,10 @@ export const MeetingRegistry = ({ t, filter, setFilter }: MeetingRegistryProps) 
                             className="inline-flex items-center gap-1.5 text-xs font-bold bg-blue-50 dark:bg-blue-900/20 border-2 nb-border-navy dark:border-blue-500 nb-text-navy dark:text-blue-400 hover:bg-[#003366] hover:text-white dark:hover:bg-blue-600 dark:hover:text-white px-3 py-1.5 transition-colors focus-visible:ring-2 nb-focus-ring-navy"
                           >
                             <ExternalLink size={14} aria-hidden="true" />
-                            Watch Live
+                            {t('watchLiveLabel')}
                             <span className="sr-only">
                               {' '}
-                              — {meeting.type}, {meeting.date}
+                              — {getLabel(meetingTypeLabels[meeting.type])}, {meeting.date}
                             </span>
                           </a>
                         )}
@@ -220,7 +232,7 @@ export const MeetingRegistry = ({ t, filter, setFilter }: MeetingRegistryProps) 
                     colSpan={4}
                     className="py-12 text-center text-zinc-500 dark:text-zinc-500 font-medium"
                   >
-                    No meetings found for this filter.
+                    {t('noMeetings')}
                   </td>
                 </tr>
               )}

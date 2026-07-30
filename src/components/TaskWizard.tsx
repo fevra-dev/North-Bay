@@ -1,11 +1,14 @@
 import { ArrowRight, Briefcase, CheckCircle2, HelpCircle } from 'lucide-react';
 import type { RefObject } from 'react';
+import type { TranslationKey } from '../data/i18n';
+import { useTranslation } from '../hooks/useTranslation';
 import { Dialog } from './Dialog';
 
 export interface WizardState {
   isOpen: boolean;
   step: number;
-  title: string;
+  /** Translation key for the dialog heading, so the title follows the active language. */
+  titleKey: TranslationKey | null;
 }
 
 interface TaskWizardProps {
@@ -33,6 +36,7 @@ const TOTAL_STEPS = 3;
  * information, and three unlabelled divs announce as nothing useful.
  */
 export const TaskWizard = ({ state, setState, panelRef }: TaskWizardProps) => {
+  const { t } = useTranslation();
   const close = () => setState({ ...state, isOpen: false });
   const goTo = (step: number) => setState({ ...state, step });
 
@@ -48,14 +52,14 @@ export const TaskWizard = ({ state, setState, panelRef }: TaskWizardProps) => {
       title={
         <>
           <Briefcase className="nb-text-navy dark:text-blue-400" aria-hidden="true" />
-          {state.title}
+          {state.titleKey ? t(state.titleKey) : ''}
         </>
       }
       header={
         <>
           <div className="px-6 pt-6 flex items-center justify-between">
             <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide">
-              Step {state.step} of {TOTAL_STEPS}
+              {t('wizardStep')} {state.step} {t('wizardOf')} {TOTAL_STEPS}
             </span>
           </div>
           <div className="flex px-6 pt-2 gap-2" aria-hidden="true">
@@ -85,14 +89,14 @@ export const TaskWizard = ({ state, setState, panelRef }: TaskWizardProps) => {
             aria-hidden={state.step === 1}
             tabIndex={state.step === 1 ? -1 : 0}
           >
-            Back
+            {t('wizardBack')}
           </button>
           <button
             type="button"
             onClick={() => (state.step === TOTAL_STEPS ? close() : goTo(state.step + 1))}
             className="nb-bg-navy nb-hover-navy-dark dark:bg-blue-600 dark:hover:bg-blue-700 text-white px-8 py-3 font-bold transition-colors flex items-center gap-2 group"
           >
-            {state.step === TOTAL_STEPS ? 'Proceed to Portal' : 'Continue'}
+            {state.step === TOTAL_STEPS ? t('wizardProceed') : t('wizardContinue')}
             <ArrowRight
               size={16}
               className="group-hover:translate-x-1 group-active:translate-x-1 transition-transform"
@@ -107,30 +111,26 @@ export const TaskWizard = ({ state, setState, panelRef }: TaskWizardProps) => {
           <h3 className="text-2xl font-bold text-zinc-900 dark:text-white">
             Step 1: Verify Zoning
           </h3>
-          <p className="text-zinc-600 dark:text-zinc-300">
-            Ensure your proposed location is zoned for your specific business type.
-          </p>
+          <p className="text-zinc-600 dark:text-zinc-300">{t('wizardStep1Body')}</p>
           <div className="bg-blue-50 dark:bg-blue-900/20 p-4 border border-blue-200 dark:border-blue-800 rounded flex gap-3">
             <HelpCircle className="text-blue-600 dark:text-blue-400 shrink-0" aria-hidden="true" />
-            <p className="text-sm text-blue-800 dark:text-blue-200">
-              Tip: Use the GIS Portal to look up zoning by address.
-            </p>
+            <p className="text-sm text-blue-800 dark:text-blue-200">{t('wizardStep1Tip')}</p>
           </div>
         </div>
       )}
       {state.step === 2 && (
         <div className="space-y-4 animate-in slide-in-from-right-4 duration-300">
           <h3 className="text-2xl font-bold text-zinc-900 dark:text-white">
-            Step 2: Prepare Documents
+            {t('wizardStep2Title')}
           </h3>
           <ul className="space-y-3 mt-4">
             <li className="flex items-center gap-2 text-sm font-medium">
               <CheckCircle2 size={16} className="text-zinc-400" aria-hidden="true" />
-              Master Business License (Provincial)
+              {t('wizardStep2ItemA')}
             </li>
             <li className="flex items-center gap-2 text-sm font-medium">
               <CheckCircle2 size={16} className="text-zinc-400" aria-hidden="true" />
-              Floor Plan / Site Plan
+              {t('wizardStep2ItemB')}
             </li>
           </ul>
         </div>
@@ -138,10 +138,10 @@ export const TaskWizard = ({ state, setState, panelRef }: TaskWizardProps) => {
       {state.step === 3 && (
         <div className="space-y-4 animate-in slide-in-from-right-4 duration-300">
           <h3 className="text-2xl font-bold text-zinc-900 dark:text-white">
-            Step 3: Begin Application
+            {t('wizardStep3Title')}
           </h3>
           <div className="p-4 border-2 border-green-500 bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-400 font-bold flex items-center justify-center gap-2">
-            <CheckCircle2 aria-hidden="true" /> Application Ready
+            <CheckCircle2 aria-hidden="true" /> {t('wizardStep3Ready')}
           </div>
         </div>
       )}

@@ -297,14 +297,20 @@ await page.waitForTimeout(250);
 // contrast of white against that pixel has to clear 4.5:1 (SC 1.4.3). Sampling with the text
 // visible would measure antialiased glyph edges instead of the backdrop and report nonsense.
 const heroContrast = async () => {
+  // Sample the HEADING's own box, not the whole hero section.
+  //
+  // The requirement (SC 1.4.3) is about the contrast between text and what is directly behind
+  // it. Measuring the entire section swept in large areas of photograph that no text ever
+  // overlaps, so the worst pixel found was usually somewhere nothing was written — which forced
+  // the scrim far darker than legibility actually required and buried the photo for nothing.
   const band = await page.evaluate(() => {
-    const r = document.querySelector('main section').getBoundingClientRect();
-    return { x: r.x, y: r.y, width: r.width, height: r.height };
+    const h1 = document.querySelector('main section h1');
+    const r = h1.getBoundingClientRect();
+    // A few pixels of margin so antialiasing at the glyph edges is not mistaken for backdrop.
+    return { x: r.x - 4, y: r.y - 4, width: r.width + 8, height: r.height + 8 };
   });
   await page.evaluate(() => {
-    for (const el of document.querySelectorAll('main section h1, main section .flex')) {
-      el.style.visibility = 'hidden';
-    }
+    document.querySelector('main section h1').style.visibility = 'hidden';
   });
   await page.waitForTimeout(200);
   const png = PNG.sync.read(await page.screenshot({ clip: band }));
@@ -318,9 +324,7 @@ const heroContrast = async () => {
     }
   }
   await page.evaluate(() => {
-    for (const el of document.querySelectorAll('main section h1, main section .flex')) {
-      el.style.visibility = '';
-    }
+    document.querySelector('main section h1').style.visibility = '';
   });
   await page.waitForTimeout(150);
   return { ratio: contrastVsWhite(lightest), rgb };
@@ -335,38 +339,154 @@ check(
   `worst backdrop rgb(${heroLight.rgb}) → ${heroLight.ratio.toFixed(2)}:1`,
 );
 
-// 8b. PERSISTENT HEADER SEARCH — hidden at the top, revealed once the hero search scrolls away,
-// and never a tab stop while it is invisible.
+// 8b. PERSISTENT HEADER SEARCH — now a toggle, not an always-open field.
+// An always-visible field could not survive translation: sized for the English nav it left no
+// room for the French one, and sized for French it was too narrow to type into. The toggle is a
+// fixed 40px square in every language. Assert the whole interaction, including focus handling,
+// because a search control that has to be clicked twice is slower than the field it replaced.
+const searchToggle = () => page.locator('header [data-search-toggle]');
+
 await page.evaluate(() => window.scrollTo(0, 0));
-await page.waitForTimeout(400);
-const headerSearchState = () =>
-  page.evaluate(() => {
-    const input = document.querySelector('header input[role="combobox"]');
-    if (!input) return null;
-    const wrap = input.closest('[aria-hidden]');
-    return {
-      opacity: getComputedStyle(wrap).opacity,
-      ariaHidden: wrap.getAttribute('aria-hidden'),
-      tabIndex: input.tabIndex,
-    };
-  });
-const atTop = await headerSearchState();
-check('header search hidden at top of page', atTop?.opacity === '0', JSON.stringify(atTop));
+await page.waitForTimeout(450);
 check(
-  'hidden header search is not tabbable',
-  atTop?.tabIndex === -1,
-  `tabIndex=${atTop?.tabIndex}`,
+  'search toggle absent at top of page (hero field is in view)',
+  (await searchToggle().count()) === 0,
 );
 
-await page.evaluate(() => window.scrollTo(0, 1200));
-await page.waitForTimeout(500);
-const scrolled = await headerSearchState();
-check('header search appears on scroll', scrolled?.opacity === '1', JSON.stringify(scrolled));
+await page.evaluate(() => window.scrollTo(0, 1400));
+await page.waitForTimeout(550);
+check('search toggle appears on scroll', await searchToggle().isVisible());
+
+await searchToggle().click();
+await page.waitForTimeout(400);
+const expanded = await page.evaluate(() => {
+  const input = document.querySelector('header input[role="combobox"]');
+  return {
+    present: Boolean(input),
+    focused: document.activeElement === input,
+    width: input ? Math.round(input.getBoundingClientRect().width) : 0,
+  };
+});
+check('toggle opens the search field', expanded.present, JSON.stringify(expanded));
+check('field receives focus on open', expanded.focused);
+check('opened field is wide enough to type in', expanded.width >= 200, `${expanded.width}px`);
+
+await page.keyboard.press('Escape');
+await page.waitForTimeout(350);
+const afterEscape = await page.evaluate(() => ({
+  closed: !document.querySelector('header input[role="combobox"]'),
+  focusOnToggle: document.activeElement?.hasAttribute('data-search-toggle') === true,
+}));
 check(
-  'revealed header search is tabbable',
-  scrolled?.tabIndex !== -1,
-  `tabIndex=${scrolled?.tabIndex}`,
+  'Escape closes the field and restores focus to the toggle',
+  afterEscape.closed && afterEscape.focusOnToggle,
+  JSON.stringify(afterEscape),
 );
+
+await page.evaluate(() => window.scrollTo(0, 0));
+await page.waitForTimeout(300);
+
+// 8b-2. FRENCH COVERAGE.
+// The site previously translated its chrome and left everything else in English: a francophone
+// resident got French navigation labels over English menu contents, English news headlines,
+// English table headers and an English search index. Rather than assert a handful of strings,
+// scan the whole rendered page for known English-only markers — anything that survives the
+// switch is by definition untranslated.
+await page.getByRole('button', { name: /switch to french/i }).click();
+await page.waitForTimeout(400);
+await page.evaluate(() => window.scrollTo(0, 0));
+await page.waitForTimeout(200);
+
+// Open each mega menu so its contents are in the DOM to be checked.
+const frenchLeaks = await page.evaluate(async () => {
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  const seen = new Set();
+  const collect = () => {
+    for (const el of document.querySelectorAll('main *, header *, footer *')) {
+      if (el.children.length === 0 && el.textContent.trim()) seen.add(el.textContent.trim());
+    }
+  };
+  collect();
+  for (const btn of document.querySelectorAll('header nav[aria-label="Main"] button')) {
+    btn.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }));
+    await sleep(150);
+    collect();
+  }
+  // Markers that should never appear once the interface is in French. Proper nouns are excluded
+  // deliberately — "North Bay", "Film North Bay" and "Marina" are names, not translatable copy.
+  const markers = [
+    'Bid Opportunities',
+    'Economic Development',
+    'Real Estate',
+    'Grow your business',
+    'Births, Marriages & Deaths',
+    'Garbage & Recycling',
+    'Property Taxes',
+    'Parking',
+    'Water & Wastewater',
+    'Report a Problem',
+    'Mayor & Council',
+    'By-Laws',
+    'Careers',
+    'Departments',
+    'Media Room',
+    'Organization Chart',
+    'About North Bay',
+    'Immigration',
+    'Sports Facilities',
+    'Recreational Activities',
+    'Housing in North Bay',
+    'Date & Time',
+    'Meeting Type',
+    'Agenda Published',
+    'Notice Issued',
+    'City Council',
+    'Committee',
+    'Public Meeting',
+    'All Meetings',
+    'Watch Live',
+    'Road Closure',
+    'Sidewalk Improvements',
+    'Building Faster Fund',
+    'Recreation Centre',
+    'Directory',
+    'Information about',
+    'Access information about',
+  ];
+  return markers.filter((m) => [...seen].some((txt) => txt.includes(m)));
+});
+check(
+  'no English content leaks through in French mode',
+  frenchLeaks.length === 0,
+  frenchLeaks.length ? `untranslated: ${frenchLeaks.slice(0, 8).join(' | ')}` : 'clean',
+);
+
+// 8b-3. Search must find French terms, including without accents.
+const frSearch = page.locator('main input[role="combobox"]').first();
+for (const [term, expect] of [
+  ['ordures', /ordures/i],
+  ['impots', /impôts/i],
+  ['garbage', /ordures/i],
+]) {
+  await frSearch.fill('');
+  await page.waitForTimeout(150);
+  await frSearch.fill(term);
+  await page.waitForTimeout(350);
+  const first = await page
+    .locator('[role="option"]')
+    .first()
+    .textContent()
+    .catch(() => '');
+  check(
+    `French search matches "${term}"`,
+    expect.test(first || ''),
+    (first || 'no results').slice(0, 60),
+  );
+}
+await frSearch.fill('');
+await frSearch.press('Escape');
+await page.getByRole('button', { name: /switch to english/i }).click();
+await page.waitForTimeout(300);
 
 // 8c. City Services quick actions
 const cityServiceLinks = await page.evaluate(() =>

@@ -1,7 +1,8 @@
 import { Search } from 'lucide-react';
 import { useId } from 'react';
-import type { SearchEntry } from '../data/search';
+import { type SearchEntry, searchCategoryLabels, searchTypeLabels } from '../data/search';
 import { useSiteSearch } from '../hooks/useSiteSearch';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface SearchComboboxProps {
   /** Visible-to-screen-readers label and placeholder text. */
@@ -45,6 +46,7 @@ export const SearchCombobox = ({
   variant = 'hero',
   disabled = false,
 }: SearchComboboxProps) => {
+  const { t, getLabel } = useTranslation();
   const {
     query,
     setQuery,
@@ -68,7 +70,7 @@ export const SearchCombobox = ({
   const isHeader = variant === 'header';
 
   const onSelect = (entry: SearchEntry) => {
-    setQuery(entry.title);
+    setQuery(getLabel(entry.title));
     close();
   };
 
@@ -116,7 +118,9 @@ export const SearchCombobox = ({
         content is frequently not announced at all.
       */}
       <span className="sr-only" role="status" aria-live="polite">
-        {isOpen ? `${results.length} result${results.length === 1 ? '' : 's'} found` : ''}
+        {isOpen
+          ? `${results.length} ${results.length === 1 ? t('searchOneResultFound') : t('searchResultsFound')}`
+          : ''}
       </span>
 
       {isOpen && (
@@ -133,7 +137,7 @@ export const SearchCombobox = ({
                 // listbox lives on the combobox input via aria-activedescendant, which is what
                 // the ARIA pattern specifies. Options must not be separately tabbable.
                 <li
-                  key={result.title}
+                  key={result.title.en}
                   id={`${id}-option-${idx}`}
                   role="option"
                   aria-selected={idx === activeIndex}
@@ -143,18 +147,22 @@ export const SearchCombobox = ({
                     idx === activeIndex ? 'bg-zinc-100 dark:bg-zinc-700' : ''
                   }`}
                 >
-                  <span className="font-bold nb-text-navy dark:text-blue-400">{result.title}</span>
+                  <span className="font-bold nb-text-navy dark:text-blue-400">
+                    {getLabel(result.title)}
+                  </span>
                   <div className="flex gap-2 text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                    <span className="uppercase tracking-wider">{result.category}</span>
+                    <span className="uppercase tracking-wider">
+                      {getLabel(searchCategoryLabels[result.category])}
+                    </span>
                     <span aria-hidden="true">•</span>
-                    <span>{result.type}</span>
+                    <span>{getLabel(searchTypeLabels[result.type])}</span>
                   </div>
                 </li>
               ))}
             </ul>
           ) : (
             <div className="p-4 text-center text-zinc-500 dark:text-zinc-400 font-medium">
-              No exact matches. Press Enter to search all pages.
+              {t('searchNoResults')}
             </div>
           )}
         </div>

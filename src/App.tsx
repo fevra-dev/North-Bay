@@ -13,26 +13,29 @@ import { MunicipalDashboard } from './components/MunicipalDashboard';
 import { SkipLink } from './components/SkipLink';
 import { TaskWizard, type WizardState } from './components/TaskWizard';
 import type { MeetingFilter } from './data/feeds';
-import type { NavCategory } from './data/i18n';
+import type { NavCategory, TranslationKey } from './data/i18n';
 import type { QuickTaskAction } from './data/navigation';
 import { useFocusTrap } from './hooks/useFocusTrap';
 import { useScrollLock } from './hooks/useScrollLock';
 import { useTheme } from './hooks/useTheme';
-import { useTranslation } from './hooks/useTranslation';
+import { TranslationProvider, useTranslation } from './hooks/useTranslation';
 
-/** Which quick tasks open a guided wizard rather than linking straight out. */
-const WIZARD_TASKS: Partial<Record<QuickTaskAction, string>> = {
-  wizard_business: 'Start a Business Workflow',
-  wizard_report: 'Report an Issue',
+/**
+ * Which quick tasks open a guided wizard rather than linking straight out. The value is a
+ * translation key, not a title — the dialog heading has to follow the active language.
+ */
+const WIZARD_TASKS: Partial<Record<QuickTaskAction, TranslationKey>> = {
+  wizard_business: 'wizardBusinessTitle',
+  wizard_report: 'wizardReportTitle',
 };
 
 /**
  * Composition root. Holds only the state that genuinely spans more than one region of the page —
- * language, theme, which menu is open, which dialog is open. Everything scoped to a single
- * component (search query, feedback sentiment) lives in that component instead, which is why
- * this file stayed short enough to read in one pass.
+ * theme, which menu is open, which dialog is open. Everything scoped to a single component
+ * (search query, feedback sentiment) lives in that component instead, which is why this file
+ * stayed short enough to read in one pass. Language lives in TranslationProvider, one level up.
  */
-export default function App() {
+const AppContent = () => {
   const { lang, toggleLanguage, t, tCategory, getLabel } = useTranslation();
   const { isDarkMode, toggleTheme } = useTheme();
 
@@ -41,7 +44,7 @@ export default function App() {
   const [activeDesktopNav, setActiveDesktopNav] = useState<NavCategory | null>(null);
   const [expandedMobileCategory, setExpandedMobileCategory] = useState<NavCategory | null>(null);
   const [meetingFilter, setMeetingFilter] = useState<MeetingFilter>('All');
-  const [wizard, setWizard] = useState<WizardState>({ isOpen: false, step: 1, title: '' });
+  const [wizard, setWizard] = useState<WizardState>({ isOpen: false, step: 1, titleKey: null });
   const [isA11yStatementOpen, setIsA11yStatementOpen] = useState(false);
   const [showHeaderSearch, setShowHeaderSearch] = useState(false);
 
@@ -51,17 +54,12 @@ export default function App() {
 
   const isAnyDialogOpen = wizard.isOpen || isA11yStatementOpen;
 
-  // Background scrolling is locked whenever any overlay covers the page.
   useScrollLock(isMobileMenuOpen || isAnyDialogOpen);
-
-  // The accessibility statement's trap. The wizard owns its own, keyed to its step.
   useFocusTrap(a11yDialogRef, isA11yStatementOpen);
 
   /*
-    PERSISTENT SEARCH, without duplicating it.
-
-    The header's compact search field appears only once the hero's own search has scrolled out
-    of view, so search is always reachable but two identical fields are never on screen at once.
+    The header's search control appears only once the hero's own search has scrolled out of view,
+    so search is always reachable but two search fields are never on screen at once.
 
     IntersectionObserver rather than a scroll listener: the browser reports the crossing itself
     instead of the page recomputing geometry on every scroll frame, which on a long municipal
@@ -72,8 +70,6 @@ export default function App() {
     if (!target) return;
     const observer = new IntersectionObserver(
       ([entry]) => setShowHeaderSearch(!entry.isIntersecting),
-      // Fires when the hero field passes behind the 80px-tall sticky header, not when it leaves
-      // the viewport entirely — otherwise there is a gap with no search reachable at all.
       { rootMargin: '-80px 0px 0px 0px', threshold: 0 },
     );
     observer.observe(target);
@@ -110,24 +106,18 @@ export default function App() {
     });
   }, []);
 
-  /*
-    Accordion: tapping an already-open category closes it, tapping a different one switches to
-    it. One screen the whole time, rather than a stack of screens to navigate back out of.
-  */
   const toggleMobileCategory = useCallback((category: NavCategory) => {
     setExpandedMobileCategory((prev) => (prev === category ? null : category));
   }, []);
 
   const handleTaskSelect = useCallback((action: QuickTaskAction) => {
-    const wizardTitle = WIZARD_TASKS[action];
-    if (wizardTitle) setWizard({ isOpen: true, step: 1, title: wizardTitle });
+    const titleKey = WIZARD_TASKS[action];
+    if (titleKey) setWizard({ isOpen: true, step: 1, titleKey });
     // Every other task links straight out to an existing service page in a real deployment.
     // Those destinations do not exist in this concept build, which the accessibility
     // statement's "known issues" section states outright rather than leaving to be discovered.
   }, []);
 
-  // Data-saver mode swaps to a system font stack and drops transitions, on top of skipping
-  // non-essential imagery in the cards themselves.
   const bandwidthClass = isLowBandwidth
     ? 'font-mono transition-none'
     : 'font-sans transition-colors duration-200';
@@ -167,17 +157,10 @@ export default function App() {
         />
 
         {/*
-          City Services and current conditions share one row rather than stacking.
-
-          Both answer "what do I need to do or know right now", and they are the two things the
-          City itself puts side by side at the top of its homepage. Stacking them would push the
-          fire-danger reading below the fold on a laptop for no benefit; `items-stretch` keeps
-          the two cards the same height so the row reads as one band rather than two leftovers.
-
-          The row sits below the hero's rule rather than overlapping it. The original single
-          full-width card was pulled up over that rule deliberately, but with two cards the gap
-          between them let the rule show straight through, which reads as a rendering fault
-          rather than as an intentional overlap.
+          City Services and current conditions share one row rather than stacking. Both answer
+          "what do I need to do or know right now", and they are the two things the City itself
+          puts side by side at the top of its homepage. `items-stretch` keeps the two cards the
+          same height so the row reads as one band rather than two leftovers.
         */}
         <section
           aria-label={t('cityServices')}
@@ -202,5 +185,13 @@ export default function App() {
         panelRef={a11yDialogRef}
       />
     </div>
+  );
+};
+
+export default function App() {
+  return (
+    <TranslationProvider>
+      <AppContent />
+    </TranslationProvider>
   );
 }

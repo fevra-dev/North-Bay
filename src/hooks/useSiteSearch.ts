@@ -5,6 +5,20 @@ import { type SearchEntry, searchIndex } from '../data/search';
 const MIN_QUERY_LENGTH = 2;
 
 /**
+ * Lower-case and strip diacritics before comparing.
+ *
+ * Without this, a French search is only as good as the visitor's keyboard. "impots" would not
+ * match "Impôts fonciers", "reunions" would miss "Réunions", "decheterie" would miss anything
+ * with an é in it — and the resident has no way to tell whether the page is missing or their
+ * accent is. Anyone typing quickly, or on a phone keyboard set to English, is affected.
+ *
+ * NFD splits an accented character into its base letter plus a combining mark; the range
+ * U+0300–U+036F is those marks, so removing them leaves the bare letters. Applied to both the
+ * query and the indexed strings so the comparison is symmetrical.
+ */
+const fold = (s: string): string => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+
+/**
  * LIVE SEARCH, built to the WAI-ARIA combobox pattern.
  *
  * Owns the query, the matching results, and the active-descendant index that arrow keys move.
@@ -23,10 +37,15 @@ export const useSiteSearch = () => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   const results = useMemo<SearchEntry[]>(() => {
-    const q = query.trim().toLowerCase();
+    const q = fold(query);
     if (q.length < MIN_QUERY_LENGTH) return [];
     return searchIndex.filter(
-      (item) => item.title.toLowerCase().includes(q) || item.category.toLowerCase().includes(q),
+      (item) =>
+        // Both languages, always — see the note on `fold` and the index itself. A francophone
+        // typing "ordures" and an anglophone typing "garbage" reach the same page.
+        fold(item.title.en).includes(q) ||
+        fold(item.title.fr).includes(q) ||
+        fold(item.category).includes(q),
     );
   }, [query]);
 

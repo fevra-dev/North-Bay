@@ -6,6 +6,7 @@ import {
   winterConditions,
 } from '../data/conditions';
 import type { TranslationKey } from '../data/i18n';
+import { useTranslation } from '../hooks/useTranslation';
 import { FIRE_ZONE_ANGLES, fireNeedleAngle, gaugeArcPath, polarToCartesian } from '../lib/gauge';
 
 interface CurrentConditionsProps {
@@ -19,36 +20,40 @@ const statusPillClass = (isActive: boolean) =>
       : 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-400'
   }`;
 
-const WinterConditionsCard = ({ t }: CurrentConditionsProps) => (
-  <div className="h-full">
-    <div className="bg-white dark:bg-zinc-900 border-2 nb-border-ink dark:border-zinc-700 px-5 py-4 h-full flex flex-wrap items-center gap-x-6 gap-y-2">
-      <h2 className="font-black text-sm uppercase tracking-wide text-zinc-900 dark:text-white flex items-center gap-2 shrink-0">
-        <AlertCircle size={16} className="nb-text-navy dark:text-blue-400" aria-hidden="true" />
-        {t('winterConditionsTitle')}
-      </h2>
-      <span role="status" className={statusPillClass(winterConditions.parkingBanActive)}>
-        {winterConditions.parkingBanActive ? t('parkingBanOn') : t('parkingBanOff')}
-      </span>
-      <span className="text-sm text-zinc-600 dark:text-zinc-400">
-        <span className="font-bold text-zinc-900 dark:text-zinc-200">
-          {t('roadConditionsLabel')}:
-        </span>{' '}
-        {winterConditions.roadConditionSummary}
-      </span>
-      <span className="text-xs text-zinc-400 dark:text-zinc-500">
-        {t('updatedLabel')}: {winterConditions.updatedAt}
-      </span>
-      <a
-        href="#"
-        className="text-xs font-bold nb-text-navy dark:text-blue-400 hover:underline ml-auto"
-      >
-        {t('winterConditionsLink')}
-      </a>
+const WinterConditionsCard = ({ t }: CurrentConditionsProps) => {
+  const { getLabel } = useTranslation();
+  return (
+    <div className="h-full">
+      <div className="bg-white dark:bg-zinc-900 border-2 nb-border-ink dark:border-zinc-700 px-5 py-4 h-full flex flex-wrap items-center gap-x-6 gap-y-2">
+        <h2 className="font-black text-sm uppercase tracking-wide text-zinc-900 dark:text-white flex items-center gap-2 shrink-0">
+          <AlertCircle size={16} className="nb-text-navy dark:text-blue-400" aria-hidden="true" />
+          {t('winterConditionsTitle')}
+        </h2>
+        <span role="status" className={statusPillClass(winterConditions.parkingBanActive)}>
+          {winterConditions.parkingBanActive ? t('parkingBanOn') : t('parkingBanOff')}
+        </span>
+        <span className="text-sm text-zinc-600 dark:text-zinc-400">
+          <span className="font-bold text-zinc-900 dark:text-zinc-200">
+            {t('roadConditionsLabel')}:
+          </span>{' '}
+          {getLabel(winterConditions.roadConditionSummary)}
+        </span>
+        <span className="text-xs text-zinc-400 dark:text-zinc-500">
+          {t('updatedLabel')} : {getLabel(winterConditions.updatedAt)}
+        </span>
+        <a
+          href="#"
+          className="text-xs font-bold nb-text-navy dark:text-blue-400 hover:underline ml-auto"
+        >
+          {t('winterConditionsLink')}
+        </a>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 const FireConditionsCard = ({ t }: CurrentConditionsProps) => {
+  const { getLabel } = useTranslation();
   const levelIndex = FIRE_DANGER_LEVELS.findIndex((l) => l.key === fireConditions.dangerLevel);
   const needleAngle = fireNeedleAngle(levelIndex);
   const needleTip = polarToCartesian(100, 100, 68, needleAngle);
@@ -116,13 +121,13 @@ const FireConditionsCard = ({ t }: CurrentConditionsProps) => {
                   x={at.x}
                   y={at.y}
                   fill="#ffffff"
-                  fontSize="11"
+                  fontSize="9"
                   fontWeight="700"
                   textAnchor="middle"
                   dominantBaseline="middle"
                   transform={`rotate(${90 - mid} ${at.x} ${at.y})`}
                 >
-                  {level.key.toUpperCase()}
+                  {getLabel(level.short)}
                 </text>
               );
             })}
@@ -150,7 +155,7 @@ const FireConditionsCard = ({ t }: CurrentConditionsProps) => {
           {t('fireBanLabel')}: {fireConditions.banActive ? t('fireBanYes') : t('fireBanNo')}
         </span>
         <span className="text-xs text-zinc-400 dark:text-zinc-500">
-          {t('updatedLabel')}: {fireConditions.updatedAt}
+          {t('updatedLabel')} : {getLabel(fireConditions.updatedAt)}
         </span>
         <a
           href="#"

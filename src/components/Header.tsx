@@ -1,4 +1,5 @@
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Search, X } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { NORTH_BAY_LOGO_URL } from '../data/branding';
 import type { Language, NavCategory, TranslationKey } from '../data/i18n';
 import { navCategories } from '../data/navigation';
@@ -56,6 +57,41 @@ export const Header = ({
   // When a real logo is present the header turns navy, so every icon and label inside it has to
   // flip to white — not just the logo slot itself.
   const headerFgClass = hasLogo ? 'text-white' : 'text-zinc-900 dark:text-zinc-100';
+
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  const searchToggleRef = useRef<HTMLButtonElement>(null);
+  const searchPanelRef = useRef<HTMLDivElement>(null);
+
+  const closeSearch = useCallback(() => {
+    setIsSearchExpanded(false);
+    // Return focus to the control that opened it. Without this, closing drops focus onto <body>
+    // and a keyboard user restarts from the top of the document.
+    searchToggleRef.current?.focus();
+  }, []);
+
+  // Move focus into the field as it opens. A search control that has to be clicked twice — once
+  // to reveal it, once to focus it — is slower than the field it replaced.
+  useEffect(() => {
+    if (!isSearchExpanded) return;
+    const raf = requestAnimationFrame(() => {
+      searchPanelRef.current?.querySelector('input')?.focus();
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [isSearchExpanded]);
+
+  // Escape closes it, and so does the search scrolling back out of relevance.
+  useEffect(() => {
+    if (!isSearchExpanded) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closeSearch();
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [isSearchExpanded, closeSearch]);
+
+  useEffect(() => {
+    if (!showHeaderSearch) setIsSearchExpanded(false);
+  }, [showHeaderSearch]);
 
   return (
     <header
@@ -145,38 +181,37 @@ export const Header = ({
           ))}
         </nav>
 
-        {/*
-          PERSISTENT SEARCH.
-
-          Fades in once the hero's own search field has scrolled out of view, so search is
-          reachable from anywhere on the page without ever having two identical search boxes
-          visible at once. `aria-hidden` and tab removal travel with the fade: a control that is
-          invisible must not still be a tab stop, or a keyboard user lands on a field they
-          cannot see.
-
-          It sits as its own flex child rather than inside the fixed right-hand cluster, and it
-          is the only compressible element in the row (`flex-1 min-w-0`). That ordering is what
-          keeps it from being run over: when the row is tight the search gives way, instead of
-          the navigation spilling out of its box and landing on top of it.
-
-          `xl` rather than `lg` because between 1024 and 1280 the nav needs the whole row in
-          French. Search is still reachable there — the hero field is a scroll away and the
-          mobile menu carries its own.
-        */}
-        <div
-          className={`hidden xl:block flex-1 min-w-0 max-w-56 mx-3 transition-opacity duration-200 ${
-            showHeaderSearch ? 'opacity-100' : 'opacity-0 pointer-events-none'
-          }`}
-          aria-hidden={!showHeaderSearch}
-        >
-          <SearchCombobox
-            placeholder={t('searchLabel')}
-            variant="header"
-            disabled={!showHeaderSearch}
-          />
-        </div>
-
         <div className="flex items-center gap-2 shrink-0">
+          {/*
+            PERSISTENT SEARCH, as a toggle rather than a permanently open field.
+
+            An always-visible field cannot work on a bilingual site. Sized to fit the English nav
+            it left no room for the French one — "Administration municipale" and "Notre
+            communauté" are far longer than their English equivalents — and sized to fit French
+            it was too narrow to type into. Making it flexible only moved the failure: it
+            collapsed to an unusable sliver at exactly the widths where French needs the space.
+
+            A toggle removes the conflict entirely. The button is a fixed 40px square in every
+            language, and the field it opens spans the header rather than competing with the nav
+            for a share of one row. This is also what the City's own site does, and what most
+            government sites converge on, for the same reason.
+          */}
+          {showHeaderSearch && (
+            <button
+              type="button"
+              onClick={() => setIsSearchExpanded(true)}
+              aria-label={t('searchLabel')}
+              aria-expanded={isSearchExpanded}
+              data-search-toggle=""
+              className={`hidden lg:flex items-center justify-center w-10 h-10 rounded-sm transition-colors focus:outline-none focus-visible:ring-2 nb-focus-ring-navy ${headerFgClass} ${
+                hasLogo ? 'hover:bg-white/10' : 'hover:bg-slate-100 dark:hover:bg-zinc-800'
+              }`}
+              ref={searchToggleRef}
+            >
+              <Search size={20} strokeWidth={2.5} aria-hidden="true" />
+            </button>
+          )}
+
           <UtilityControls
             lang={lang}
             toggleLanguage={toggleLanguage}
@@ -218,6 +253,33 @@ export const Header = ({
             />
           </button>
         </div>
+        {/*
+          The expanded field, overlaying the header row rather than sharing it. `inset-0` on the
+          row means it gets the full width in either language, and the close button returns focus
+          to the toggle so a keyboard user is not dropped at the top of the document.
+        */}
+        {isSearchExpanded && (
+          <div
+            ref={searchPanelRef}
+            className={`hidden lg:flex absolute inset-0 items-center gap-3 px-4 sm:px-8 ${
+              hasLogo ? 'nb-bg-navy dark:bg-blue-950' : 'bg-white dark:bg-zinc-900'
+            }`}
+          >
+            <div className="flex-1">
+              <SearchCombobox placeholder={t('searchLabel')} variant="header" />
+            </div>
+            <button
+              type="button"
+              onClick={closeSearch}
+              aria-label={t('closeDialog')}
+              className={`flex items-center justify-center w-10 h-10 rounded-sm shrink-0 transition-colors focus:outline-none focus-visible:ring-2 nb-focus-ring-navy ${headerFgClass} ${
+                hasLogo ? 'hover:bg-white/10' : 'hover:bg-slate-100 dark:hover:bg-zinc-800'
+              }`}
+            >
+              <X size={20} aria-hidden="true" />
+            </button>
+          </div>
+        )}
       </div>
 
       {activeDesktopNav && (

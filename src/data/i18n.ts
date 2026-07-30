@@ -11,13 +11,18 @@
  * (activeDesktopNav, expandedMobileCategory, siteStructure[...]) without that lookup logic
  * needing to know which language is active.
  *
- * Deeper nav sub-items and the mock news/meetings/events content are left English-only on
- * purpose: in a real CMS those come from localized content fields an editor fills in per
- * page, not from strings hardcoded in a template. Pretending otherwise here would model the
- * problem wrongly.
+ * An earlier version of this file translated the chrome and left everything else in English,
+ * reasoning that nav sub-items and news content are CMS fields rather than template strings. The
+ * reasoning was sound; the result was still a French page with English navigation contents,
+ * English headlines, English table headers and an English search index. A resident does not care
+ * which layer a string came from. Content now carries its own `{ en, fr }` pair alongside it —
+ * see data/navigation.ts, data/feeds.ts and data/search.ts — which is exactly how a localized CMS
+ * field behaves, and means there is no separate French site to drift out of sync.
  *
- * A fluent reviewer should QA every French string in this file before any of it reaches
- * production. It has not had that pass yet, and this comment should not be deleted until it has.
+ * A fluent reviewer should QA every French string in this project before any of it reaches
+ * production. It has not had that pass yet, it is disclosed in the accessibility statement's
+ * known-issues section, and neither this comment nor that disclosure should be deleted until a
+ * native speaker has actually read it.
  */
 
 export const i18n = {
@@ -81,6 +86,82 @@ export const i18n = {
     conceptDisclaimer:
       'Unofficial redesign concept. Not affiliated with or endorsed by the City of North Bay.',
     topServicesFooter: 'Popular Pages',
+
+    // Alert banner
+    alertMessage: 'Main Street Revitalization Road Closures in effect until Aug 15.',
+    alertLinkLabel: 'Detour Maps',
+
+    // Mega menu
+    directory: 'Directory',
+
+    // Meeting registry
+    colDateTime: 'Date & Time',
+    colMeetingType: 'Meeting Type',
+    colStatus: 'Status',
+    colActions: 'Actions',
+    agendaLabel: 'Agenda',
+    watchLiveLabel: 'Watch Live',
+    notYetAvailable: 'Not yet available',
+    noMeetings: 'No meetings found for this filter.',
+    meetingsCaption: 'Upcoming municipal meetings with agendas and livestream links',
+
+    // Feedback
+    thanksPositive: 'Thanks for letting us know this page helped.',
+    thanksNegative: 'Thanks. What made this page hard to use?',
+    feedbackPlaceholder: 'Optional: tell us more so we can fix it',
+    feedbackNoteLabel: 'Tell us what made this page hard to use (optional)',
+    sendFeedback: 'Send feedback',
+    feedbackSent: 'Feedback sent. Thank you.',
+
+    // Search
+    searchNoResults: 'No exact matches. Press Enter to search all pages.',
+    searchResultsFound: 'results found',
+    searchOneResultFound: 'result found',
+
+    // Task wizard
+    wizardBusinessTitle: 'Start a Business Workflow',
+    wizardReportTitle: 'Report an Issue',
+    wizardStep: 'Step',
+    wizardOf: 'of',
+    wizardBack: 'Back',
+    wizardContinue: 'Continue',
+    wizardProceed: 'Proceed to Portal',
+    wizardStep1Title: 'Step 1: Verify Zoning',
+    wizardStep1Body: 'Ensure your proposed location is zoned for your specific business type.',
+    wizardStep1Tip: 'Tip: Use the GIS Portal to look up zoning by address.',
+    wizardStep2Title: 'Step 2: Prepare Documents',
+    wizardStep2ItemA: 'Master Business License (Provincial)',
+    wizardStep2ItemB: 'Floor Plan / Site Plan',
+    wizardStep3Title: 'Step 3: Begin Application',
+    wizardStep3Ready: 'Application Ready',
+
+    // Accessibility statement
+    a11yTitle: 'Accessibility Statement',
+    a11yConformanceHeading: 'Conformance status',
+    a11yConformanceBody:
+      "This site targets WCAG 2.2 Level AA, one level above the WCAG 2.0 AA the City is required to meet under Ontario's Integrated Accessibility Standards Regulation (O. Reg. 191/11). This page is a partial conformance statement for a redesign in progress, not a final audit result.",
+    a11yVerifiedHeading: "What's been verified",
+    a11yVerified1:
+      'Keyboard access to every menu, dialog, and control, including a true focus trap in modal dialogs',
+    a11yVerified2: 'Visible focus indicators on every interactive element',
+    a11yVerified3: 'A skip link and a proper landmark structure (header, nav, main, footer)',
+    a11yVerified4: "Support for the operating system's reduced-motion preference",
+    a11yVerified5:
+      'Colour is never the only way information is conveyed (severity, urgency, and status all carry a text label alongside colour)',
+    a11yVerified6:
+      'Live search follows the WAI-ARIA combobox pattern, including arrow-key navigation between results',
+    a11yKnownHeading: 'Known issues',
+    a11yKnown1:
+      'French translations have not yet had a review pass by a fluent speaker; the interface, navigation and content are translated, but the wording has not been professionally verified',
+    a11yKnown2:
+      'This is a demonstration build: navigation links and service destinations are not wired to real pages',
+    a11yFeedbackHeading: 'Feedback and accommodation requests',
+    a11yFeedbackBody:
+      'If any part of this site is difficult to use with assistive technology, contact the Customer Service Centre at',
+    a11yFeedbackBody2:
+      'Requests for information in an accessible format will be met in a timeframe that takes the request into account.',
+    a11yReviewed: 'Last reviewed: July 2026.',
+    closeDialog: 'Close dialog',
   },
   fr: {
     title: 'Ville de North Bay',
@@ -143,6 +224,87 @@ export const i18n = {
     conceptDisclaimer:
       'Concept de refonte non officiel. Sans affiliation avec la Ville de North Bay ni approbation de celle-ci.',
     topServicesFooter: 'Pages populaires',
+
+    // Alert banner
+    alertMessage:
+      'Fermetures de routes pour la revitalisation de la rue Main en vigueur jusqu’au 15 août.',
+    alertLinkLabel: 'Cartes des détours',
+
+    // Mega menu
+    directory: 'Répertoire',
+
+    // Meeting registry
+    colDateTime: 'Date et heure',
+    colMeetingType: 'Type de réunion',
+    colStatus: 'Statut',
+    colActions: 'Actions',
+    agendaLabel: 'Ordre du jour',
+    watchLiveLabel: 'Diffusion en direct',
+    notYetAvailable: 'Pas encore disponible',
+    noMeetings: 'Aucune réunion ne correspond à ce filtre.',
+    meetingsCaption:
+      'Réunions municipales à venir, avec ordres du jour et liens de diffusion en direct',
+
+    // Feedback
+    thanksPositive: 'Merci de nous avoir indiqué que cette page vous a été utile.',
+    thanksNegative: 'Merci. Qu’est-ce qui a rendu cette page difficile à utiliser?',
+    feedbackPlaceholder: 'Facultatif : dites-nous-en plus afin que nous puissions corriger',
+    feedbackNoteLabel: 'Dites-nous ce qui a rendu cette page difficile à utiliser (facultatif)',
+    sendFeedback: 'Envoyer les commentaires',
+    feedbackSent: 'Commentaires envoyés. Merci.',
+
+    // Search
+    searchNoResults:
+      'Aucune correspondance exacte. Appuyez sur Entrée pour chercher dans tout le site.',
+    searchResultsFound: 'résultats trouvés',
+    searchOneResultFound: 'résultat trouvé',
+
+    // Task wizard
+    wizardBusinessTitle: 'Démarches pour démarrer une entreprise',
+    wizardReportTitle: 'Signaler un problème',
+    wizardStep: 'Étape',
+    wizardOf: 'sur',
+    wizardBack: 'Précédent',
+    wizardContinue: 'Continuer',
+    wizardProceed: 'Accéder au portail',
+    wizardStep1Title: 'Étape 1 : vérifier le zonage',
+    wizardStep1Body:
+      'Assurez-vous que l’emplacement envisagé est zoné pour votre type d’entreprise.',
+    wizardStep1Tip: 'Conseil : utilisez le portail SIG pour vérifier le zonage par adresse.',
+    wizardStep2Title: 'Étape 2 : préparer les documents',
+    wizardStep2ItemA: 'Licence d’entreprise principale (provinciale)',
+    wizardStep2ItemB: 'Plan d’étage ou plan d’implantation',
+    wizardStep3Title: 'Étape 3 : commencer la demande',
+    wizardStep3Ready: 'Demande prête',
+
+    // Accessibility statement
+    a11yTitle: 'Déclaration d’accessibilité',
+    a11yConformanceHeading: 'État de conformité',
+    a11yConformanceBody:
+      'Ce site vise le niveau AA des WCAG 2.2, soit un niveau au-dessus du niveau AA des WCAG 2.0 que la Ville doit respecter en vertu du Règlement sur les normes d’accessibilité intégrées de l’Ontario (Règl. de l’Ont. 191/11). Cette page est une déclaration de conformité partielle pour une refonte en cours, et non le résultat d’un audit final.',
+    a11yVerifiedHeading: 'Ce qui a été vérifié',
+    a11yVerified1:
+      'Accès au clavier à tous les menus, dialogues et commandes, y compris un véritable piège de focus dans les dialogues modaux',
+    a11yVerified2: 'Indicateurs de focus visibles sur tous les éléments interactifs',
+    a11yVerified3:
+      'Un lien d’évitement et une structure de repères appropriée (en-tête, navigation, contenu principal, pied de page)',
+    a11yVerified4: 'Prise en charge de la préférence de mouvement réduit du système d’exploitation',
+    a11yVerified5:
+      'La couleur n’est jamais le seul moyen de transmettre l’information (gravité, urgence et statut sont toujours accompagnés d’un libellé texte)',
+    a11yVerified6:
+      'La recherche en direct suit le modèle de zone de liste déroulante WAI-ARIA, y compris la navigation par touches fléchées',
+    a11yKnownHeading: 'Problèmes connus',
+    a11yKnown1:
+      'Les traductions françaises n’ont pas encore été révisées par une personne dont c’est la langue maternelle; l’interface, la navigation et le contenu sont traduits, mais la formulation n’a pas été vérifiée professionnellement',
+    a11yKnown2:
+      'Il s’agit d’une version de démonstration : les liens de navigation et les destinations de services ne mènent pas à de vraies pages',
+    a11yFeedbackHeading: 'Commentaires et demandes d’adaptation',
+    a11yFeedbackBody:
+      'Si une partie de ce site est difficile à utiliser avec une technologie d’assistance, communiquez avec le Centre de service à la clientèle à',
+    a11yFeedbackBody2:
+      'Les demandes d’information dans un format accessible seront traitées dans un délai qui tient compte de la demande.',
+    a11yReviewed: 'Dernière révision : juillet 2026.',
+    closeDialog: 'Fermer le dialogue',
   },
 } as const;
 

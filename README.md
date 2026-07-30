@@ -51,13 +51,27 @@ targets **WCAG 2.2 Level AA** instead:
 
 ### Bilingual by structure, not by afterthought
 
-Full English/French parity across persistent navigation and page chrome, consistent with
-Ontario's French Language Services Act. `<html lang>` updates with the toggle so screen readers
-switch pronunciation rules, and individual out-of-language words (the "Français" label) carry
-their own `lang` attribute.
+Full English/French parity across **everything**, not just the chrome: navigation contents, mega
+menu descriptions, news headlines, event listings, meeting types and statuses, table headers, the
+task wizard, and the accessibility statement itself. Consistent with Ontario's French Language
+Services Act. `<html lang>` updates with the toggle so screen readers switch pronunciation rules,
+and individual out-of-language words carry their own `lang` attribute.
 
-The French strings have **not** had a fluent review pass — that is stated in the accessibility
-statement's known-issues section rather than quietly omitted.
+An earlier pass translated only the chrome, on the reasoning that nav items and news are CMS
+content rather than template strings. The reasoning was sound and the result was still a French
+page with thirteen English links under "Services et paiements". Content now carries its own
+`{ en, fr }` pair, which is how a localized CMS field actually behaves.
+
+**Search matches both languages at once.** A francophone typing "ordures" finds the garbage page;
+someone typing "garbage" while the interface is in French finds it too. Bilingual residents mix
+languages constantly and often know a municipal term in only one of them, so matching only the
+active language would penalise exactly the people the French interface exists for. Queries are
+also accent-folded — "impots" finds "Impôts fonciers", because otherwise French search is only as
+good as the visitor's keyboard.
+
+A test scans the fully-rendered French page for English-only markers, so an untranslated string
+cannot quietly reappear. The French strings have **not** had a fluent review pass — that is stated
+in the accessibility statement's known-issues section rather than quietly omitted.
 
 ### A specific land acknowledgment
 
@@ -105,10 +119,14 @@ point of that mode is that someone on a metered connection should not pay for at
 
 ### Search that stays reachable
 
-The hero carries the primary search. Once it scrolls out of view a compact field fades into the
-sticky header, so search is available from anywhere on the page without two identical search
-boxes ever being visible at once. The hidden field is removed from the tab order while it is
-invisible — a control a keyboard user can reach but not see is worse than no control at all.
+The hero carries the primary search. Once it scrolls out of view a search **toggle** appears in
+the sticky header, opening a full-width field over the header row.
+
+A toggle rather than an always-open field, because an always-open field cannot survive
+translation: sized to fit the English nav it left no room for the French one, and sized to fit
+French it was too narrow to type into. Making it flexible only moved the failure — it collapsed to
+an unusable sliver at exactly the widths where French needs the space. The button is a fixed 40px
+square in every language. Focus moves into the field on open and returns to the toggle on Escape.
 
 ### Two ways in, for two kinds of traffic
 
@@ -137,7 +155,7 @@ bilingual municipal site they are what a francophone resident is scanning for.
 
 ## Verifying it, rather than asserting it
 
-`tests/verify.mjs` drives a real browser (Playwright) through **60 assertions** across desktop
+`tests/verify.mjs` drives a real browser (Playwright) through **66 assertions** across desktop
 and mobile viewports — the theme toggle repainting, dark mode surviving a reload, the focus trap
 holding across 50 Tab presses in both directions, combobox arrow-key wrapping, `<html lang>`
 switching, landmark structure, heading order, CSV export, zero horizontal overflow at 390px, the

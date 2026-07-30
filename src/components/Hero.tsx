@@ -101,9 +101,27 @@ export const Hero = ({
       never light enough to put the text at risk. In dark mode it deepens further so the hero
       does not glow against a near-black page.
     */}
+    {/*
+      TWO LAYERS, because the contrast requirement applies where the TEXT is, not evenly across
+      the whole photograph.
+
+      A single flat scrim dense enough for the heading also flattens the water, the marina and
+      the treeline — the parts that make the image worth having. So the base layer is light,
+      enough to unify the photo and keep the white search boxes from vibrating against it, and a
+      second gradient concentrates opacity in the upper band where the heading actually sits and
+      releases toward the bottom where nothing but empty space overlaps the water.
+
+      The measured result is what governs this: tests/verify.mjs samples the lightest pixel
+      behind the heading specifically, rather than across the whole section, because the section
+      average was never the number the standard cares about.
+    */}
     <div
       aria-hidden="true"
-      className="absolute inset-0 -z-10 bg-linear-to-b from-[#003366]/79 via-[#003366]/68 to-[#002347]/77 dark:from-[#001a33]/89 dark:via-[#001a33]/82 dark:to-[#00101f]/87"
+      className="absolute inset-0 -z-10 bg-[#003366]/30 dark:bg-[#001a33]/45"
+    />
+    <div
+      aria-hidden="true"
+      className="absolute inset-0 -z-10 bg-linear-to-b from-[#00284f]/94 via-[#003366]/38 to-transparent dark:from-[#00101f]/88 dark:via-[#001a33]/50 dark:to-transparent"
     />
 
     <div className="max-w-4xl mx-auto pt-12 pb-12 px-4 sm:px-8">

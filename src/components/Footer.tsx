@@ -1,5 +1,6 @@
 import type { TranslationKey } from '../data/i18n';
-import { socialLinks } from '../data/navigation';
+import { footerPopularPages, socialLinks } from '../data/navigation';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface FooterProps {
   t: (key: TranslationKey) => string;
@@ -70,117 +71,112 @@ const FooterColumn = ({ title, links }: { title: string; links: string[] }) => (
  * of this footer that is not a utility link, and compacting it alongside "Careers" and "Legal"
  * would say something about how seriously it is meant.
  */
-export const Footer = ({ t, onOpenAccessibilityStatement }: FooterProps) => (
-  <footer
-    className="print:hidden nb-bg-ink dark:bg-black text-white pt-14 pb-8 px-4 sm:px-8 border-t nb-border-navy dark:border-blue-900"
-    style={{ borderTopWidth: '8px' }}
-  >
-    <div className="max-w-7xl mx-auto">
-      <div className="grid gap-10 md:grid-cols-3 mb-12">
-        <div>
-          <div className="flex flex-col mb-4">
-            <span className="text-xs font-bold tracking-widest text-zinc-400 uppercase mb-0.5">
-              {t('cityOfLabel')}
-            </span>
-            <span className="text-xl font-black text-white tracking-tight leading-none">
-              {t('titleShort')}
-            </span>
+export const Footer = ({ t, onOpenAccessibilityStatement }: FooterProps) => {
+  const { getLabel } = useTranslation();
+  return (
+    <footer
+      className="print:hidden nb-bg-ink dark:bg-black text-white pt-14 pb-8 px-4 sm:px-8 border-t nb-border-navy dark:border-blue-900"
+      style={{ borderTopWidth: '8px' }}
+    >
+      <div className="max-w-7xl mx-auto">
+        <div className="grid gap-10 md:grid-cols-3 mb-12">
+          <div>
+            <div className="flex flex-col mb-4">
+              <span className="text-xs font-bold tracking-widest text-zinc-400 uppercase mb-0.5">
+                {t('cityOfLabel')}
+              </span>
+              <span className="text-xl font-black text-white tracking-tight leading-none">
+                {t('titleShort')}
+              </span>
+            </div>
+            <address className="text-zinc-400 text-sm leading-relaxed not-italic mb-2">
+              200 McIntyre Street East
+              <br />
+              North Bay, ON P1B 8V6
+            </address>
+            <p className="text-sm">
+              <a href="tel:+17054740400" className="text-white font-bold hover:underline">
+                705-474-0400
+              </a>
+            </p>
+            <p className="text-sm mt-1">
+              <a
+                href="mailto:customerservice@northbay.ca"
+                className="text-zinc-400 hover:text-white hover:underline transition-colors"
+              >
+                customerservice@northbay.ca
+              </a>
+            </p>
           </div>
-          <address className="text-zinc-400 text-sm leading-relaxed not-italic mb-2">
-            200 McIntyre Street East
-            <br />
-            North Bay, ON P1B 8V6
-          </address>
-          <p className="text-sm">
-            <a href="tel:+17054740400" className="text-white font-bold hover:underline">
-              705-474-0400
-            </a>
-          </p>
-          <p className="text-sm mt-1">
-            <a
-              href="mailto:customerservice@northbay.ca"
-              className="text-zinc-400 hover:text-white hover:underline transition-colors"
-            >
-              customerservice@northbay.ca
-            </a>
-          </p>
-        </div>
 
-        <FooterColumn
-          title={t('topServicesFooter')}
-          links={[
-            'Garbage & Recycling',
-            'North Bay Transit',
-            'Property Taxes',
-            'Forms, Permits & Licenses',
-          ]}
-        />
+          <FooterColumn title={t('topServicesFooter')} links={footerPopularPages.map(getLabel)} />
 
-        <div>
-          <h2 className="text-xs font-bold tracking-widest text-zinc-500 uppercase mb-3">
-            {t('followUs')}
-          </h2>
-          <ul className="flex items-center gap-2">
-            {socialLinks.map((social) => (
-              <li key={social.name}>
-                {/*
+          <div>
+            <h2 className="text-xs font-bold tracking-widest text-zinc-500 uppercase mb-3">
+              {t('followUs')}
+            </h2>
+            <ul className="flex items-center gap-2">
+              {socialLinks.map((social) => (
+                <li key={social.name}>
+                  {/*
                   `rel="noopener noreferrer"` on every external target: `noopener` stops the
                   opened page from reaching back through `window.opener`, and the pairing is the
                   standard hardening for `target="_blank"`.
                 */}
-                <a
-                  href={social.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center w-11 h-11 text-zinc-400 hover:text-white hover:bg-white/10 transition-colors rounded-sm focus-visible:ring-2 nb-focus-ring-navy"
-                >
-                  <SocialIcon name={social.name} />
-                  <span className="sr-only">{social.name} (opens in a new tab)</span>
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-
-      <div className="border-t border-zinc-800 pt-10 text-center">
-        <p className="text-xs text-zinc-400 leading-relaxed max-w-3xl mx-auto mb-8 font-medium">
-          <strong className="text-white block mb-2 text-sm uppercase tracking-widest">
-            {t('landAcknowledgement')}
-          </strong>
-          {t('footerLand')}
-        </p>
-
-        <div className="border-t border-zinc-800 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-500">
-          <p>© 2026 Corporation of the City of North Bay. {t('allRightsReserved')}</p>
-          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
-            <a href="#" className="hover:text-white transition-colors">
-              {t('contactUs')}
-            </a>
-            <a href="#" className="hover:text-white transition-colors">
-              {t('privacy')}
-            </a>
-            <a href="#" className="hover:text-white transition-colors">
-              {t('careers')}
-            </a>
-            <button
-              type="button"
-              onClick={onOpenAccessibilityStatement}
-              className="hover:text-white transition-colors underline-offset-2 hover:underline"
-            >
-              {t('accessibility')}
-            </button>
+                  <a
+                    href={social.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center w-11 h-11 text-zinc-400 hover:text-white hover:bg-white/10 transition-colors rounded-sm focus-visible:ring-2 nb-focus-ring-navy"
+                  >
+                    <SocialIcon name={social.name} />
+                    <span className="sr-only">{social.name} (opens in a new tab)</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
 
-        {/*
+        <div className="border-t border-zinc-800 pt-10 text-center">
+          <p className="text-xs text-zinc-400 leading-relaxed max-w-3xl mx-auto mb-8 font-medium">
+            <strong className="text-white block mb-2 text-sm uppercase tracking-widest">
+              {t('landAcknowledgement')}
+            </strong>
+            {t('footerLand')}
+          </p>
+
+          <div className="border-t border-zinc-800 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-500">
+            <p>© 2026 Corporation of the City of North Bay. {t('allRightsReserved')}</p>
+            <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
+              <a href="#" className="hover:text-white transition-colors">
+                {t('contactUs')}
+              </a>
+              <a href="#" className="hover:text-white transition-colors">
+                {t('privacy')}
+              </a>
+              <a href="#" className="hover:text-white transition-colors">
+                {t('careers')}
+              </a>
+              <button
+                type="button"
+                onClick={onOpenAccessibilityStatement}
+                className="hover:text-white transition-colors underline-offset-2 hover:underline"
+              >
+                {t('accessibility')}
+              </button>
+            </div>
+          </div>
+
+          {/*
           Concept disclaimer. This page carries the City's wordmark and its content and is
           deployed at a public URL, so it states plainly that it is neither the City's site nor
           endorsed by it — in the page itself, not only in the README, because the page gets
           screenshotted and linked without its repository.
         */}
-        <p className="text-xs text-zinc-600 mt-6">{t('conceptDisclaimer')}</p>
+          <p className="text-xs text-zinc-600 mt-6">{t('conceptDisclaimer')}</p>
+        </div>
       </div>
-    </div>
-  </footer>
-);
+    </footer>
+  );
+};

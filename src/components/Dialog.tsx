@@ -1,6 +1,7 @@
 import { X } from 'lucide-react';
 import type { ReactNode, RefObject } from 'react';
 import { useFocusTrap } from '../hooks/useFocusTrap';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface DialogProps {
   isOpen: boolean;
@@ -47,6 +48,7 @@ export const Dialog = ({
   panelRef,
   trapDeps = [],
 }: DialogProps) => {
+  const { t } = useTranslation();
   useFocusTrap(panelRef, isOpen, trapDeps);
 
   if (!isOpen) return null;
@@ -80,7 +82,7 @@ export const Dialog = ({
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close dialog"
+            aria-label={t('closeDialog')}
             className="p-1 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-full transition-colors focus-visible:ring-2 nb-focus-ring-navy"
           >
             <X aria-hidden="true" />

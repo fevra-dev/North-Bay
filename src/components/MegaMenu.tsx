@@ -1,6 +1,7 @@
 import { ArrowRight } from 'lucide-react';
 import type { NavCategory } from '../data/i18n';
 import { categoryDescriptions, siteStructure } from '../data/navigation';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface MegaMenuProps {
   category: NavCategory;
@@ -9,6 +10,7 @@ interface MegaMenuProps {
 
 /** Desktop dropdown listing everything under one top-level navigation category. */
 export const MegaMenu = ({ category, categoryLabel }: MegaMenuProps) => {
+  const { t, getLabel } = useTranslation();
   const items = siteStructure[category];
   if (!items) return null;
 
@@ -23,23 +25,23 @@ export const MegaMenu = ({ category, categoryLabel }: MegaMenuProps) => {
             {/*
               A one-line description under each menu heading, as the City's own mega menus carry.
               "Business" alone makes a visitor guess whether the section is for starting one,
-              paying one's taxes, or bidding on work; a sentence answers it before they scan
+              paying its taxes, or bidding on work; a sentence answers that before they scan
               fifteen links looking for the answer.
             */}
             <p className="text-sm text-zinc-600 dark:text-zinc-400 max-w-2xl">
-              {categoryDescriptions[category]}
+              {getLabel(categoryDescriptions[category])}
             </p>
           </div>
           <a
             href="#"
             className="shrink-0 text-sm font-bold flex items-center gap-1 hover:underline text-zinc-900 dark:text-zinc-100"
           >
-            Directory <ArrowRight size={16} aria-hidden="true" />
+            {t('directory')} <ArrowRight size={16} aria-hidden="true" />
           </a>
         </div>
         <ul className="grid grid-cols-3 gap-x-12 gap-y-4">
           {items.map((item) => (
-            <li key={item}>
+            <li key={item.en}>
               <a
                 href="#"
                 className="text-zinc-600 dark:text-zinc-300 font-medium nb-hover-text-navy dark:hover:text-blue-400 hover:underline decoration-2 underline-offset-4 flex items-start gap-2"
@@ -48,7 +50,7 @@ export const MegaMenu = ({ category, categoryLabel }: MegaMenuProps) => {
                   className="mt-1.5 w-1 h-1 bg-zinc-300 dark:bg-zinc-600 rounded-full shrink-0"
                   aria-hidden="true"
                 />
-                {item}
+                {getLabel(item)}
               </a>
             </li>
           ))}
