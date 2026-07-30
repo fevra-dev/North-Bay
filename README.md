@@ -198,6 +198,17 @@ tests/verify.mjs       browser assertions
 adr/                   architecture decision records
 ```
 
+## Decisions, and the tests that hold them
+
+`adr/` records the calls that were not obvious — each with the alternatives that lost, and **the
+assertion that fails if the decision is violated**. An ADR without enforcement is a comment, not a
+control.
+
+Four of the six exist because a plausible-looking change broke something silently: dark mode that
+toggled a class and repainted nothing, brand tokens that produced white-on-white buttons, a French
+interface over English content, and a contrast measurement that was averaging a region no text
+occupied. Each record says what went wrong, not just what was chosen.
+
 This began as a single 1,464-line `.tsx` file. Splitting it was not tidying for its own sake: the
 dark-mode bug below was invisible inside a monolith and obvious once the CSS had a file of its own.
 

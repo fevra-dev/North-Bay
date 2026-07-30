@@ -11,7 +11,7 @@ interface FooterProps {
  * Brand marks drawn inline as paths rather than pulled from an icon library.
  *
  * lucide-react dropped its brand icons (they are trademarks, not iconography), and adding a
- * second icon dependency for four glyphs is not a trade worth making — ADR-0001, zero-trust
+ * second icon dependency for four glyphs is not a trade worth making — adr/0001, zero-trust
  * dependencies. Each is `aria-hidden` with the platform name carried in the link's own
  * accessible name, so a screen reader announces "Facebook, opens in a new tab" rather than
  * describing a shape.

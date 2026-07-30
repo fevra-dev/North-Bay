@@ -33,28 +33,17 @@
 }
 
 /*
-  BRAND COLOR TOKENS.
+  BRAND COLOUR TOKENS — see adr/0003 for the full reasoning.
 
-  The two brand colors live here as named, semantic classes rather than as arbitrary bracket
-  values (`bg-[#003366]`) scattered through the markup. Changing the municipal navy means
-  editing one line here instead of finding every `#003366` across a dozen files and hoping none
-  were missed, and the markup reads as intent (`nb-bg-navy`) rather than as a hex literal.
+  The two brand colours live here as named, semantic classes rather than as arbitrary bracket
+  values (`bg-[#003366]`) scattered through the markup. Changing the municipal navy means editing
+  one line instead of finding every `#003366` across a dozen files and hoping none were missed,
+  and the markup reads as intent (`nb-bg-navy`) rather than as a hex literal.
 
-  ON THE ABSENCE OF `!important`, which matters more than it looks:
+  No `!important` anywhere. It was here originally, and it made light mode correct and dark mode
+  impossible — `!important` beats `dark:text-blue-400`, so thirteen token/variant pairs rendered
+  navy #003366 on a #09090b background. The layer split below replaces it.
 
-  These rules originally carried `!important` on every declaration. That worked for the light
-  theme, and it silently broke the dark one — `!important` on `.nb-text-navy` beats
-  `dark:text-blue-400`, so every element pairing a brand token with a dark variant kept its
-  light-mode color on a near-black background. Navy #003366 body links on #09090b. The bug was
-  invisible for as long as dark mode itself was broken, and surfaced the moment it started
-  working.
-
-  Declaring these in `@layer components` is the fix and needs no `!important` at all: Tailwind
-  v4 orders its cascade layers theme → base → components → utilities, so a utility already
-  outranks anything in this layer regardless of selector specificity. Light mode gets the brand
-  token, dark mode gets the `dark:` utility that overrides it, and neither has to fight.
-*/
-/*
   RESTING COLOURS live in the components layer, so a `dark:` utility on the same element
   overrides them. That is the behaviour that makes dark mode work at all.
 */
@@ -268,7 +257,7 @@
   panel, the dialogs and the wizard steps all appeared instantly with no transition.
 
   Defining the keyframes here directly is a few lines of CSS against a whole extra dependency in
-  the tree for the same result (ADR-0001, zero-trust dependencies). The `prefers-reduced-motion`
+  the tree for the same result (adr/0001, zero-trust dependencies). The `prefers-reduced-motion`
   block above still collapses all of it to ~0ms for anyone who asks.
 */
 @layer utilities {
