@@ -50,7 +50,20 @@ export const Hero = ({
   searchSectionRef,
   isLowBandwidth,
 }: HeroProps) => (
-  <section className="print:hidden relative isolate border-b-2 nb-border-ink dark:border-zinc-700 overflow-hidden">
+  /*
+    `z-20`, and deliberately NOT `overflow-hidden`.
+
+    Clipping the section was how the background photograph was kept inside its box, and it also
+    silently amputated the search results panel: the listbox drops out of the bottom of the hero,
+    so anything typed into the field produced suggestions sheared off at the section edge. The
+    photograph does not actually need clipping — `absolute inset-0` already bounds it to exactly
+    this box — so the clip was pure cost.
+
+    `isolate` still creates the stacking context the `-z-10` image and scrim sit inside, and
+    `z-20` lifts that whole context above the sections that follow, so the dropdown paints over
+    the City Services row instead of behind it.
+  */
+  <section className="print:hidden relative z-20 isolate border-b-2 nb-border-ink dark:border-zinc-700">
     {/*
       Data-saver mode skips the photograph outright and falls back to flat navy. This is the
       single heaviest asset on the page, and the whole point of the mode is that someone on a

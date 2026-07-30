@@ -34,18 +34,30 @@ export const FeedbackWidget = ({ t }: FeedbackWidgetProps) => {
               </h2>
               <p className="text-sm text-zinc-600 dark:text-zinc-400">{t('helpfulSub')}</p>
             </div>
+            {/*
+              These buttons previously changed only their border colour on hover, via a token
+              that a base `border-zinc-300` utility outranked — so in practice they did not
+              respond to the pointer at all. A control that gives no feedback before it is
+              clicked reads as decoration, which is a particular problem here: this is the one
+              place on the page asking the visitor to commit to an action with no undo.
+
+              The hover state now fills the button, inverts the text, and lifts the border. That
+              is a change in three properties at once rather than one subtle shift, so the
+              affordance survives being viewed on a dim laptop screen at an angle. `active:`
+              adds a pressed state so a touch device confirms the tap too.
+            */}
             <div className="flex gap-3">
               <button
                 type="button"
                 onClick={() => setSentiment('positive')}
-                className="flex items-center gap-2 px-6 py-3 border-2 font-bold transition-colors border-zinc-300 dark:border-zinc-600 nb-hover-border-ink dark:hover:border-zinc-400 focus-visible:ring-2 nb-focus-ring-navy"
+                className="flex items-center gap-2 px-6 py-3 border-2 font-bold transition-colors cursor-pointer border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 hover:bg-[#003366] hover:border-[#003366] hover:text-white active:bg-[#001f3f] dark:hover:bg-blue-600 dark:hover:border-blue-600 dark:hover:text-white focus-visible:ring-2 nb-focus-ring-navy"
               >
                 <ThumbsUp size={16} aria-hidden="true" /> {t('yesLabel')}
               </button>
               <button
                 type="button"
                 onClick={() => setSentiment('negative')}
-                className="flex items-center gap-2 px-6 py-3 border-2 font-bold transition-colors border-zinc-300 dark:border-zinc-600 nb-hover-border-ink dark:hover:border-zinc-400 focus-visible:ring-2 nb-focus-ring-navy"
+                className="flex items-center gap-2 px-6 py-3 border-2 font-bold transition-colors cursor-pointer border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 hover:bg-[#003366] hover:border-[#003366] hover:text-white active:bg-[#001f3f] dark:hover:bg-blue-600 dark:hover:border-blue-600 dark:hover:text-white focus-visible:ring-2 nb-focus-ring-navy"
               >
                 <ThumbsDown size={16} aria-hidden="true" /> {t('noLabel')}
               </button>

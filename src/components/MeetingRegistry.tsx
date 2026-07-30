@@ -173,7 +173,15 @@ export const MeetingRegistry = ({ t, filter, setFilter }: MeetingRegistryProps) 
                         {meeting.agendaUrl ? (
                           <a
                             href={meeting.agendaUrl}
-                            className="inline-flex items-center gap-1.5 text-xs font-bold bg-white dark:bg-zinc-900 border-2 nb-border-ink dark:border-zinc-500 text-zinc-900 dark:text-zinc-300 nb-hover-bg-ink hover:text-white dark:hover:bg-zinc-100 dark:hover:text-black px-3 py-1.5 transition-colors"
+                            /*
+                              Hover expressed entirely in Tailwind utilities rather than the
+                              nb- tokens. Both the resting and hover colours here have dark-mode
+                              counterparts, and keeping the whole set in one layer means the pair
+                              can never half-apply — which is exactly what happened before: the
+                              background stayed white while the text turned white with it, and
+                              the button vanished into the page.
+                            */
+                            className="inline-flex items-center gap-1.5 text-xs font-bold bg-white dark:bg-zinc-900 border-2 nb-border-ink dark:border-zinc-500 text-zinc-900 dark:text-zinc-300 hover:bg-zinc-900 hover:text-white hover:border-zinc-900 dark:hover:bg-zinc-100 dark:hover:text-zinc-900 dark:hover:border-zinc-100 px-3 py-1.5 transition-colors focus-visible:ring-2 nb-focus-ring-navy"
                           >
                             <Download size={14} aria-hidden="true" />
                             {/* The link text alone would be four identical "Agenda" links to a
@@ -192,7 +200,7 @@ export const MeetingRegistry = ({ t, filter, setFilter }: MeetingRegistryProps) 
                         {meeting.videoUrl && (
                           <a
                             href={meeting.videoUrl}
-                            className="inline-flex items-center gap-1.5 text-xs font-bold bg-blue-50 dark:bg-blue-900/20 border-2 nb-border-navy dark:border-blue-500 nb-text-navy dark:text-blue-400 nb-hover-bg-navy nb-hover-text-white px-3 py-1.5 transition-colors"
+                            className="inline-flex items-center gap-1.5 text-xs font-bold bg-blue-50 dark:bg-blue-900/20 border-2 nb-border-navy dark:border-blue-500 nb-text-navy dark:text-blue-400 hover:bg-[#003366] hover:text-white dark:hover:bg-blue-600 dark:hover:text-white px-3 py-1.5 transition-colors focus-visible:ring-2 nb-focus-ring-navy"
                           >
                             <ExternalLink size={14} aria-hidden="true" />
                             Watch Live

@@ -195,14 +195,32 @@ for (const width of [1024, 1280, 1440, 1920]) {
     const overflow = await page.evaluate(
       () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
     );
-    const headerOverflow = await page.evaluate(() => {
-      const row = document.querySelector('header > div');
-      return Math.round(row.scrollWidth - row.clientWidth);
+    // Measuring the header ROW is not enough, and that gap is how the collision shipped: a
+    // `min-w-0` nav shrinks its own box while `whitespace-nowrap` children keep their width and
+    // spill out of it. The row reports no overflow while the nav visibly sits on top of the
+    // search field beside it. So measure the nav's own overflow, and the real gap between the
+    // last nav item and the search.
+    await page.evaluate(() => window.scrollTo(0, 1400));
+    await page.waitForTimeout(350);
+    const layout = await page.evaluate(() => {
+      const nav = document.querySelector('header nav[aria-label="Main"]');
+      const btns = [...nav.querySelectorAll('button')];
+      const last = btns[btns.length - 1].getBoundingClientRect();
+      const wrap = document
+        .querySelector('header input[role="combobox"]')
+        ?.closest('[aria-hidden]');
+      const searchShown = wrap && getComputedStyle(wrap).display !== 'none';
+      return {
+        navOverflow: nav.scrollWidth - nav.clientWidth,
+        gap: searchShown ? Math.round(wrap.getBoundingClientRect().left - last.right) : null,
+      };
     });
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.waitForTimeout(200);
     check(
-      `no horizontal overflow at ${width}px (${lang})`,
-      overflow <= 1 && headerOverflow <= 1,
-      `page=${overflow}px header=${headerOverflow}px`,
+      `header fits without collision at ${width}px (${lang})`,
+      overflow <= 1 && layout.navOverflow <= 0 && (layout.gap === null || layout.gap >= 4),
+      `page=${overflow}px navOverflow=${layout.navOverflow}px gap=${layout.gap}`,
     );
   }
 }
@@ -213,6 +231,65 @@ if ((await page.evaluate(() => document.documentElement.lang)) !== 'en') {
 }
 await page.setViewportSize({ width: 1440, height: 900 });
 await page.waitForTimeout(200);
+
+// 7c. The hero's search results must escape the hero section and paint above what follows.
+// An `overflow-hidden` on that section (added to contain the background photograph) sheared the
+// suggestions off at the section edge — the list rendered, was announced, and was half invisible.
+{
+  const heroSearch = page.locator('main input[role="combobox"]').first();
+  await heroSearch.click();
+  await heroSearch.fill('build');
+  await page.waitForTimeout(400);
+  const dropdown = await page.evaluate(() => {
+    const lb = document.querySelector('[role="listbox"]');
+    if (!lb) return null;
+    const sec = document.querySelector('main section');
+    const box = lb.getBoundingClientRect();
+    return {
+      clipped: getComputedStyle(sec).overflow === 'hidden',
+      // Hit-test the bottom of the list: if something else is painted there, it is obscured.
+      onTop: lb.contains(document.elementFromPoint(box.left + box.width / 2, box.bottom - 8)),
+    };
+  });
+  check(
+    'hero search results are neither clipped nor painted under the next section',
+    Boolean(dropdown && !dropdown.clipped && dropdown.onTop),
+    JSON.stringify(dropdown),
+  );
+  await heroSearch.press('Escape');
+  await heroSearch.fill('');
+  await page.waitForTimeout(200);
+}
+
+// 7d. INTERACTION STATES MUST ACTUALLY FIRE.
+// Every one of these changed a property that a base Tailwind utility silently outranked, so the
+// control looked interactive and did nothing — and the meeting buttons went white-on-white,
+// disappearing into the page entirely. Assert both that hover changes something and that the
+// result stays readable.
+for (const [label, selector, prop] of [
+  ['feedback Yes button', 'button:has-text("Yes")', 'backgroundColor'],
+  ['meeting Agenda link', 'a:has-text("Agenda")', 'backgroundColor'],
+  ['meeting Watch Live link', 'a:has-text("Watch Live")', 'backgroundColor'],
+  ['news card', 'a:has(h3)', 'borderColor'],
+]) {
+  const el = page.locator(selector).first();
+  await el.scrollIntoViewIfNeeded();
+  await page.waitForTimeout(200);
+  const before = await el.evaluate((n, prop) => getComputedStyle(n)[prop], prop);
+  await el.hover();
+  await page.waitForTimeout(300);
+  const state = await el.evaluate((n, prop) => {
+    const cs = getComputedStyle(n);
+    return { after: cs[prop], bg: cs.backgroundColor, fg: cs.color };
+  }, prop);
+  check(
+    `${label} has a working hover state`,
+    before !== state.after && state.bg !== state.fg,
+    `${prop} ${before} → ${state.after}; bg=${state.bg} fg=${state.fg}`,
+  );
+}
+await page.evaluate(() => window.scrollTo(0, 0));
+await page.waitForTimeout(250);
 
 // 8a. HERO PHOTOGRAPH — white text over a photo is the classic municipal accessibility failure.
 // Measure the actual composited backdrop: hide the hero's own text, screenshot the section, and

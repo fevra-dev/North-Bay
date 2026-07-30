@@ -54,10 +54,50 @@
   outranks anything in this layer regardless of selector specificity. Light mode gets the brand
   token, dark mode gets the `dark:` utility that overrides it, and neither has to fight.
 */
+/*
+  RESTING COLOURS live in the components layer, so a `dark:` utility on the same element
+  overrides them. That is the behaviour that makes dark mode work at all.
+*/
 @layer components {
   .nb-bg-navy {
     background-color: #003366;
   }
+  .nb-text-navy {
+    color: #003366;
+  }
+  .nb-border-navy {
+    border-color: #003366;
+  }
+  .nb-bg-ink {
+    background-color: #111111;
+  }
+  .nb-text-ink {
+    color: #111111;
+  }
+  .nb-border-ink {
+    border-color: #111111;
+  }
+}
+
+/*
+  INTERACTION STATES live in the utilities layer, and the distinction is load-bearing.
+
+  Resting colours must LOSE to a `dark:` utility — that is what lets dark mode override them.
+  Interaction states must WIN against a resting utility on the same element, because that is the
+  entire job of a hover state. Putting both in the components layer, as this file originally did,
+  satisfies the first requirement and silently breaks the second: a Tailwind utility outranks
+  everything in `components`, so `bg-white hover:…` kept its white background on hover while the
+  text obediently turned white too. An invisible button.
+
+  That failure was quiet in exactly the way that matters — nothing errors, nothing logs, the
+  markup reads correctly, and the control simply stops responding. It affected the meeting
+  registry's action buttons, the feedback buttons, the mega-menu links and the news card titles
+  before it was caught by hovering them.
+
+  Selector specificity does the rest: `.nb-hover-bg-ink:hover` is (0,2,0) against `.bg-white`
+  at (0,1,0), so within the same layer the hover state wins on merit rather than on ordering.
+*/
+@layer utilities {
   .nb-hover-bg-navy:hover,
   .nb-hover-bg-navy:active {
     background-color: #003366;
@@ -65,39 +105,53 @@
   .nb-hover-navy-dark:hover {
     background-color: #001f3f;
   }
+  .nb-hover-text-navy:hover {
+    color: #003366;
+  }
+  .nb-hover-text-white:hover,
+  .nb-hover-text-white:active {
+    color: #ffffff;
+  }
+  .nb-hover-bg-ink:hover {
+    background-color: #111111;
+  }
+  .nb-hover-text-ink:hover {
+    color: #111111;
+  }
+  .nb-hover-border-ink:hover {
+    border-color: #111111;
+  }
 
   /*
-    `:active` sits alongside `:hover` on the group rules below because hover on a real
-    touchscreen is inconsistent between browsers — some never enter a hover state from a tap at
-    all — while `:active` fires reliably on the press itself everywhere. Verified against a real
-    mobile viewport, not assumed.
+    `:active` sits alongside `:hover` on the group rules because hover on a real touchscreen is
+    inconsistent between browsers — some never enter a hover state from a tap at all — while
+    `:active` fires reliably on the press itself everywhere. Verified on a real mobile viewport.
   */
   .group:hover .nb-group-hover-bg-navy,
   .group:active .nb-group-hover-bg-navy {
     background-color: #003366;
   }
-  .nb-text-navy {
-    color: #003366;
-  }
-  .nb-hover-text-navy:hover {
-    color: #003366;
-  }
-  .group:hover .nb-group-hover-navy {
+  .group:hover .nb-group-hover-navy,
+  .group:active .nb-group-hover-navy {
     color: #003366;
   }
   .group:hover .nb-group-hover-white,
   .group:active .nb-group-hover-white {
     color: #ffffff;
   }
-  .nb-hover-text-white:hover,
-  .nb-hover-text-white:active {
-    color: #ffffff;
+  .group:hover .nb-group-hover-ink,
+  .group:active .nb-group-hover-ink {
+    color: #111111;
   }
-  .nb-border-navy {
-    border-color: #003366;
-  }
+
   .nb-focus-border-navy:focus {
     border-color: #003366;
+  }
+  .nb-focus-text-ink:focus {
+    color: #111111;
+  }
+  .nb-focus-border-ink:focus {
+    border-color: #111111;
   }
 
   /*
@@ -112,35 +166,6 @@
   .nb-focus-ring-navy-all:focus {
     outline: none;
     box-shadow: 0 0 0 4px rgb(0 51 102 / 0.2);
-  }
-
-  .nb-bg-ink {
-    background-color: #111111;
-  }
-  .nb-hover-bg-ink:hover {
-    background-color: #111111;
-  }
-  .nb-text-ink {
-    color: #111111;
-  }
-  .nb-hover-text-ink:hover {
-    color: #111111;
-  }
-  .group:hover .nb-group-hover-ink,
-  .group:active .nb-group-hover-ink {
-    color: #111111;
-  }
-  .nb-border-ink {
-    border-color: #111111;
-  }
-  .nb-hover-border-ink:hover {
-    border-color: #111111;
-  }
-  .nb-focus-text-ink:focus {
-    color: #111111;
-  }
-  .nb-focus-border-ink:focus {
-    border-color: #111111;
   }
 
   /*
@@ -225,7 +250,7 @@
   the ring is defined here rather than in the markup — there is no utility on the element for a
   variant to attach to.
 */
-@layer components {
+@layer utilities {
   .dark .nb-focus-ring-navy:focus-visible {
     box-shadow: 0 0 0 4px rgb(96 165 250 / 0.4);
   }

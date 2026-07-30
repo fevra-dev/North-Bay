@@ -101,7 +101,20 @@ export const Header = ({
           wayfinding on the entire site; at 14px against a navy field they read as secondary
           chrome, which is the opposite of their role.
         */}
-        <nav className="hidden lg:flex h-full min-w-0" aria-label="Main">
+        {/*
+          `shrink-0`, deliberately not `min-w-0`.
+
+          Letting this shrink was the bug. A flex child with `min-w-0` will happily size below
+          its content, and because the buttons inside are `whitespace-nowrap` they kept their
+          full width and spilled straight out of the box — 41px past it in English, 168px in
+          French — landing on top of the search field beside them. The page itself never
+          scrolled, so an overflow check on the header row saw nothing wrong while the two
+          controls visibly overlapped.
+
+          The nav is now incompressible and the search beside it is the flexible element, so
+          when space runs short the search gives way instead of the navigation being overrun.
+        */}
+        <nav className="hidden lg:flex h-full shrink-0" aria-label="Main">
           {navCategories.map((category) => (
             <button
               type="button"
@@ -110,7 +123,7 @@ export const Header = ({
               onFocus={() => setActiveDesktopNav(category)}
               aria-expanded={activeDesktopNav === category}
               aria-haspopup="true"
-              className={`px-2 xl:px-4 h-full font-bold text-sm xl:text-base whitespace-nowrap flex items-center gap-1 transition-colors border-b-4 nb-focus-ring-navy dark:focus-visible:outline dark:focus-visible:outline-2 dark:focus-visible:outline-blue-400 ${headerFgClass} ${
+              className={`px-2 xl:px-4 h-full font-bold text-[13px] xl:text-base whitespace-nowrap flex items-center gap-1 transition-colors border-b-4 nb-focus-ring-navy dark:focus-visible:outline dark:focus-visible:outline-2 dark:focus-visible:outline-blue-400 ${headerFgClass} ${
                 activeDesktopNav === category
                   ? hasLogo
                     ? 'border-white bg-white/10'
@@ -132,34 +145,38 @@ export const Header = ({
           ))}
         </nav>
 
+        {/*
+          PERSISTENT SEARCH.
+
+          Fades in once the hero's own search field has scrolled out of view, so search is
+          reachable from anywhere on the page without ever having two identical search boxes
+          visible at once. `aria-hidden` and tab removal travel with the fade: a control that is
+          invisible must not still be a tab stop, or a keyboard user lands on a field they
+          cannot see.
+
+          It sits as its own flex child rather than inside the fixed right-hand cluster, and it
+          is the only compressible element in the row (`flex-1 min-w-0`). That ordering is what
+          keeps it from being run over: when the row is tight the search gives way, instead of
+          the navigation spilling out of its box and landing on top of it.
+
+          `xl` rather than `lg` because between 1024 and 1280 the nav needs the whole row in
+          French. Search is still reachable there — the hero field is a scroll away and the
+          mobile menu carries its own.
+        */}
+        <div
+          className={`hidden xl:block flex-1 min-w-0 max-w-56 mx-3 transition-opacity duration-200 ${
+            showHeaderSearch ? 'opacity-100' : 'opacity-0 pointer-events-none'
+          }`}
+          aria-hidden={!showHeaderSearch}
+        >
+          <SearchCombobox
+            placeholder={t('searchLabel')}
+            variant="header"
+            disabled={!showHeaderSearch}
+          />
+        </div>
+
         <div className="flex items-center gap-2 shrink-0">
-          {/*
-            PERSISTENT SEARCH.
-
-            Fades in once the hero's own search field has scrolled out of view, so search is
-            reachable from anywhere on the page without ever having two identical search boxes
-            visible at the same time. `aria-hidden` and `inert`-style tab removal travel with the
-            fade: a control that is invisible must not still be a tab stop, or a keyboard user
-            lands on a field they cannot see.
-          */}
-          {/*
-            `xl` rather than `lg`: between 1024 and 1280px the nav and this field compete for the
-            same row, and in French there is not room for both. Search is still reachable there —
-            the hero field is a scroll away, and the mobile menu carries its own.
-          */}
-          <div
-            className={`hidden xl:block w-56 transition-opacity duration-200 ${
-              showHeaderSearch ? 'opacity-100' : 'opacity-0 pointer-events-none'
-            }`}
-            aria-hidden={!showHeaderSearch}
-          >
-            <SearchCombobox
-              placeholder={t('searchLabel')}
-              variant="header"
-              disabled={!showHeaderSearch}
-            />
-          </div>
-
           <UtilityControls
             lang={lang}
             toggleLanguage={toggleLanguage}
