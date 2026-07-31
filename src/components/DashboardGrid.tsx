@@ -61,7 +61,7 @@ export const DashboardGrid = ({ t, isLowBandwidth }: DashboardGridProps) => {
               <a
                 href="#"
                 key={news.id}
-                className="block bg-white dark:bg-zinc-900 p-4 border border-zinc-200 dark:border-zinc-800 shadow-sm group nb-hover-border-ink dark:hover:border-zinc-500 transition-colors focus-visible:ring-2 nb-focus-ring-navy"
+                className="block bg-white dark:bg-zinc-900 px-4 py-5 border border-zinc-200 dark:border-zinc-800 shadow-sm group nb-hover-border-ink dark:hover:border-zinc-500 transition-colors focus-visible:ring-2 nb-focus-ring-navy"
               >
                 <div className="flex items-center gap-2 mb-2">
                   {news.urgent && (
@@ -106,8 +106,10 @@ export const DashboardGrid = ({ t, isLowBandwidth }: DashboardGridProps) => {
               const [month, day] = getLabel(event.date).split(' ');
               return (
                 <a
-                  href="#"
+                  href={event.href}
                   key={event.id}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="flex items-stretch bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden group nb-hover-border-ink dark:hover:border-zinc-500 transition-colors focus-visible:ring-2 nb-focus-ring-navy"
                 >
                   {/*
@@ -144,10 +146,14 @@ export const DashboardGrid = ({ t, isLowBandwidth }: DashboardGridProps) => {
                     />
                   )}
 
-                  <div className="p-4 flex-1 min-w-0">
-                    <h3 className="font-bold text-sm mb-1.5 group-hover:underline group-active:underline text-zinc-900 dark:text-zinc-100">
+                  <div className="px-4 py-3 flex-1 min-w-0">
+                    <h3 className="font-bold text-sm leading-snug mb-1 group-hover:underline group-active:underline text-zinc-900 dark:text-zinc-100">
                       {getLabel(event.title)}
+                      <span className="sr-only"> {t('opensOnCitySite')}</span>
                     </h3>
+                    <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-snug mb-1.5 line-clamp-2">
+                      {getLabel(event.summary)}
+                    </p>
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-zinc-600 dark:text-zinc-400 font-medium">
                       <span className="flex items-center gap-1">
                         <MapPin size={12} aria-hidden="true" /> {getLabel(event.location)}

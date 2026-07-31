@@ -1,4 +1,5 @@
 import aquaDanceFit from '../assets/aqua-dance-fit.jpg';
+import hotSummerNights from '../assets/hot-summer-nights.jpg';
 import movieInThePark from '../assets/movie-in-the-park.jpg';
 import type { LocalizedLabel } from './i18n';
 
@@ -148,9 +149,20 @@ export interface CommunityEvent {
   /** Split on the space into month / day for the date tile, so both parts localize. */
   readonly date: LocalizedLabel;
   readonly title: LocalizedLabel;
+  /**
+   * One sentence of what the event actually is.
+   *
+   * Added for two reasons at once. A title alone — "Aqua Dance Fit" — does not tell a resident
+   * whether it costs anything, whether they can just turn up, or whether it is for them; the
+   * summary answers all three. And it brings each card to roughly the height of a news card, so
+   * the two columns finish together instead of one trailing a void beneath it.
+   */
+  readonly summary: LocalizedLabel;
   readonly location: LocalizedLabel;
   readonly time: LocalizedLabel;
   readonly image: string;
+  /** The City's page for this event. */
+  readonly href: string;
   /**
    * Real alt text describing what is actually in the photograph, not the event name repeated.
    * An empty string would be correct for purely decorative imagery; these are informative.
@@ -158,43 +170,75 @@ export interface CommunityEvent {
   readonly imageAlt: LocalizedLabel;
 }
 
+const EVENTS_BASE = 'https://northbay.ca/our-community/events-programs';
+
+/**
+ * Real City events, with the City's own wording condensed to a card. Using invented events beside
+ * a masthead and a working navigation would be the one place this concept quietly stopped being
+ * checkable — a reviewer can look these up.
+ */
 export const eventsFeed: readonly CommunityEvent[] = [
   {
     id: 'e1',
     date: L('Jul 16', '16 juill.'),
-    // Program names are names, not descriptions. "Aqua Dance Fit" is what the schedule, the
-    // signage and the instructor all call it, so translating it would make it unfindable.
-    title: L('Aqua Dance Fit', 'Aqua Dance Fit'),
+    // Programme names are names, not descriptions. "Aqua Dance Fit" is what the schedule, the
+    // signage and the instructor all call it; translating it would make it unfindable.
+    title: L('Aqua Dance Fit at The Cove Beach', 'Aqua Dance Fit à la plage The Cove'),
+    summary: L(
+      'A free drop-in class combining easy-to-follow dance moves with music and the natural support of the water. Thursdays to Aug. 20.',
+      'Un cours gratuit sans inscription qui allie des pas de danse faciles, de la musique et le soutien naturel de l’eau. Les jeudis jusqu’au 20 août.',
+    ),
     location: L('The Cove Beach', 'Plage The Cove'),
     time: L('11:00 AM', '11 h'),
     image: aquaDanceFit,
+    // The City has no separate page for this class, so it links to the programme listing that
+    // carries it rather than to a URL invented to look tidier.
+    href: `${EVENTS_BASE}/`,
     imageAlt: L(
       'Participants doing water aerobics in a roped-off swimming area at The Cove Beach',
-      "Des participants font de l'aquaforme dans une zone de baignade délimitée à la plage The Cove",
+      'Des participants font de l’aquaforme dans une zone de baignade délimitée à la plage The Cove',
     ),
   },
   {
     id: 'e2',
-    date: L('Jul 31', '31 juill.'),
-    title: L('Civic Holiday: Movie in the Park', 'Congé civique : cinéma au parc'),
-    location: L('Waterfront', 'Secteur riverain'),
-    time: L('8:00 PM', '20 h'),
+    date: L('Jul 30', '30 juill.'),
+    title: L(
+      'Weekly Summer Concert Series in Full Swing',
+      'La série de concerts estivaux bat son plein',
+    ),
+    summary: L(
+      'A long-standing summer tradition: free live music at the Kiwanis Bandshell on the North Bay waterfront.',
+      'Une tradition estivale de longue date : de la musique en direct gratuite au kiosque Kiwanis, sur le secteur riverain.',
+    ),
+    location: L('Kiwanis Bandshell', 'Kiosque à musique Kiwanis'),
+    time: L('7:00 PM', '19 h'),
+    // The bandshell at sunset — the concert series' own venue, so the photograph is doing real
+    // work rather than being decorative filler.
     image: movieInThePark,
+    href: `${EVENTS_BASE}/summer-concert-series/`,
     imageAlt: L(
-      'The North Bay waterfront park and bandshell at sunset',
-      'Le parc riverain de North Bay et son kiosque à musique au coucher du soleil',
+      'The Kiwanis Bandshell and North Bay waterfront park at sunset',
+      'Le kiosque à musique Kiwanis et le parc riverain de North Bay au coucher du soleil',
     ),
   },
   {
-    // No photograph for this one, deliberately: it exercises the gradient fallback in
-    // lib/placeholder.ts, which is the state most events will actually be in before a
-    // communications officer has attached an image.
     id: 'e3',
-    date: L('Aug 6', '6 août'),
-    title: L('Weekly Summer Concert Series', 'Série de concerts estivaux'),
-    location: L('Kiwanis Bandshell', 'Kiosque à musique Kiwanis'),
-    time: L('7:00 PM', '19 h'),
-    image: '',
-    imageAlt: L('', ''),
+    date: L('Jul 31', '31 juill.'),
+    title: L(
+      'Civic Holiday Weekend Features Hot Summer Nights',
+      'Hot Summer Nights au programme du long week-end',
+    ),
+    summary: L(
+      'Three days of free live music on the waterfront, plus a family-friendly Movie in the Park, July 31 to Aug. 2.',
+      'Trois jours de musique en direct gratuite au bord de l’eau, ainsi qu’un cinéma au parc pour toute la famille, du 31 juillet au 2 août.',
+    ),
+    location: L('Waterfront', 'Secteur riverain'),
+    time: L('All weekend', 'Tout le week-end'),
+    image: hotSummerNights,
+    href: `${EVENTS_BASE}/hot-summer-nights-music-festival/`,
+    imageAlt: L(
+      'A band performing on an outdoor stage at dusk while a crowd watches from the waterfront',
+      'Un groupe se produit sur une scène extérieure au crépuscule devant un public au bord de l’eau',
+    ),
   },
 ];

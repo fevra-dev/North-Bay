@@ -167,6 +167,30 @@
   .nb-skiplink:focus {
     z-index: 200;
   }
+
+  /*
+    STICKY HEADER, ON ITS OWN COMPOSITING LAYER.
+
+    The header re-renders mid-scroll: an IntersectionObserver watching the hero's search field
+    flips `showHeaderSearch` as it leaves the viewport, which re-renders the header while the
+    browser is already scrolling it. A sticky element being repainted during a scroll is the
+    classic setup for a one-frame tear — the reported symptom was a band of blue appearing below
+    the header for a split second, which is the header's own fill briefly painting outside its box.
+
+    Promoting it to its own layer means a repaint of the header no longer forces the browser to
+    recomposite what sits beneath it. `will-change: transform` rather than an actual
+    `translateZ(0)` so no transform is applied — the header is already `position: sticky`, which
+    establishes the containing block its absolutely positioned mega menu and search panel rely on,
+    and adding a real transform would change nothing except the risk surface.
+
+    Honest caveat: this was not reproducible on demand in automation — sampling the pixel band
+    under the header across a scripted wheel scroll never caught a frame with the artifact. This
+    is the standard mitigation for the class of bug described rather than a fix confirmed against
+    a captured failure.
+  */
+  .nb-sticky-header {
+    will-change: transform;
+  }
 }
 
 /*
@@ -235,9 +259,20 @@
 }
 
 /*
-  Dark-mode focus ring. Scoped under `.dark` rather than expressed as a `dark:` utility because
-  the ring is defined here rather than in the markup — there is no utility on the element for a
-  variant to attach to.
+  DARK-MODE INTERACTION STATES.
+
+  Moving the interaction tokens into `@layer utilities` fixed them losing to a resting utility —
+  and created the mirror-image problem one layer down. `.nb-hover-text-navy:hover` and
+  `dark:hover:text-blue-400` have identical specificity (0,2,0), both sit in the utilities layer,
+  and this file is imported after Tailwind's own utilities, so the brand token wins on source
+  order alone. In dark mode that meant hovering a news headline turned it navy #003366 on a
+  near-black card: legible in the sense that the pixels changed, unreadable in every sense that
+  matters.
+
+  Scoping under `.dark` raises specificity to (0,3,0), so these win in dark mode on merit rather
+  than on which stylesheet happened to be parsed last. Every brand token that an element pairs
+  with a `dark:` variant needs a counterpart here — the pattern to watch for is a token and a
+  variant fighting over the same property with the same specificity.
 */
 @layer utilities {
   .dark .nb-focus-ring-navy:focus-visible {
@@ -245,6 +280,40 @@
   }
   .dark .nb-focus-ring-navy-all:focus {
     box-shadow: 0 0 0 4px rgb(96 165 250 / 0.35);
+  }
+
+  /* Text: navy is unreadable on a dark surface; blue-400 is the dark-mode equivalent. */
+  .dark .nb-hover-text-navy:hover,
+  .dark .group:hover .nb-group-hover-navy,
+  .dark .group:active .nb-group-hover-navy {
+    color: #60a5fa;
+  }
+  .dark .nb-hover-text-ink:hover,
+  .dark .group:hover .nb-group-hover-ink,
+  .dark .group:active .nb-group-hover-ink {
+    color: #ffffff;
+  }
+
+  /* Surfaces. */
+  .dark .nb-hover-bg-navy:hover,
+  .dark .nb-hover-bg-navy:active,
+  .dark .group:hover .nb-group-hover-bg-navy,
+  .dark .group:active .nb-group-hover-bg-navy {
+    background-color: #2563eb;
+  }
+  .dark .nb-hover-navy-dark:hover {
+    background-color: #1d4ed8;
+  }
+  .dark .nb-hover-bg-ink:hover {
+    background-color: #e4e4e7;
+  }
+
+  /* Borders. */
+  .dark .nb-hover-border-ink:hover {
+    border-color: #71717a;
+  }
+  .dark .nb-focus-border-navy:focus {
+    border-color: #60a5fa;
   }
 }
 

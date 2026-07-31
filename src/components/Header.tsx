@@ -95,7 +95,7 @@ export const Header = ({
 
   return (
     <header
-      className={`print:hidden sticky top-0 border-b-2 transition-colors ${
+      className={`print:hidden sticky top-0 border-b-2 transition-colors nb-sticky-header ${
         hasLogo
           ? 'nb-bg-navy dark:bg-blue-950 border-transparent'
           : 'bg-white dark:bg-zinc-900 nb-border-ink dark:border-zinc-700'
@@ -116,7 +116,7 @@ export const Header = ({
         that is not an edge case. Sizes below step down at `lg` and back up at `xl` so the row
         fits the longer language at every desktop width rather than only the shorter one.
       */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-8 h-20 flex items-center justify-between relative z-10 bg-inherit gap-2 xl:gap-4 min-w-0">
+      <div className="max-w-7xl mx-auto px-4 sm:px-8 h-20 flex items-center justify-between relative z-10 gap-2 xl:gap-4 min-w-0">
         <a href="#" className="flex items-center gap-3 shrink-0">
           {hasLogo ? (
             <img src={NORTH_BAY_LOGO_URL} alt={t('title')} className="h-12 w-auto" />
