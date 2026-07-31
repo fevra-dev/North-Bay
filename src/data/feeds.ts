@@ -185,4 +185,16 @@ export const eventsFeed: readonly CommunityEvent[] = [
       'Le parc riverain de North Bay et son kiosque à musique au coucher du soleil',
     ),
   },
+  {
+    // No photograph for this one, deliberately: it exercises the gradient fallback in
+    // lib/placeholder.ts, which is the state most events will actually be in before a
+    // communications officer has attached an image.
+    id: 'e3',
+    date: L('Aug 6', '6 août'),
+    title: L('Weekly Summer Concert Series', 'Série de concerts estivaux'),
+    location: L('Kiwanis Bandshell', 'Kiosque à musique Kiwanis'),
+    time: L('7:00 PM', '19 h'),
+    image: '',
+    imageAlt: L('', ''),
+  },
 ];

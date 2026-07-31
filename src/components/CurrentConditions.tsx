@@ -34,12 +34,12 @@ const WinterConditionsCard = ({ t }: CurrentConditionsProps) => {
         </span>
         <span className="text-sm text-zinc-600 dark:text-zinc-400">
           <span className="font-bold text-zinc-900 dark:text-zinc-200">
-            {t('roadConditionsLabel')}:
+            {t('roadConditionsLabel')}
           </span>{' '}
           {getLabel(winterConditions.roadConditionSummary)}
         </span>
         <span className="text-xs text-zinc-400 dark:text-zinc-500">
-          {t('updatedLabel')} : {getLabel(winterConditions.updatedAt)}
+          {t('updatedLabel')} {getLabel(winterConditions.updatedAt)}
         </span>
         <a
           href="#"
@@ -147,15 +147,15 @@ const FireConditionsCard = ({ t }: CurrentConditionsProps) => {
               {t('fireConditionsTitle')}
             </h2>
             <p className="text-sm text-zinc-700 dark:text-zinc-300">
-              <span className="font-bold">{t('fireDangerLabel')}:</span> {levelLabel}
+              <span className="font-bold">{t('fireDangerLabel')}</span> {levelLabel}
             </p>
           </div>
         </div>
         <span role="status" className={statusPillClass(fireConditions.banActive)}>
-          {t('fireBanLabel')}: {fireConditions.banActive ? t('fireBanYes') : t('fireBanNo')}
+          {t('fireBanLabel')} {fireConditions.banActive ? t('fireBanYes') : t('fireBanNo')}
         </span>
         <span className="text-xs text-zinc-400 dark:text-zinc-500">
-          {t('updatedLabel')} : {getLabel(fireConditions.updatedAt)}
+          {t('updatedLabel')} {getLabel(fireConditions.updatedAt)}
         </span>
         <a
           href="#"

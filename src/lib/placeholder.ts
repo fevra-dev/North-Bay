@@ -10,7 +10,10 @@
  * branch in DashboardGrid — is already built for that swap.
  */
 export const eventPlaceholderImage = (seed = 0): string => {
-  const hue = 205 + ((seed * 37) % 40);
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="225"><defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="hsl(${hue},65%,20%)" /><stop offset="100%" stop-color="hsl(${hue + 20},55%,32%)" /></linearGradient></defs><rect width="400" height="225" fill="url(#g)" /></svg>`;
+  // Narrow band around the brand navy, low saturation. The earlier range reached 245°,
+  // which rendered a vivid purple beside two photographs of a lake — the placeholder read as a
+  // deliberate design element rather than as a missing image, which is exactly backwards.
+  const hue = 205 + ((seed * 13) % 16);
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="225"><defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="hsl(${hue},28%,26%)" /><stop offset="100%" stop-color="hsl(${hue + 12},22%,38%)" /></linearGradient></defs><rect width="400" height="225" fill="url(#g)" /></svg>`;
   return `data:image/svg+xml,${encodeURIComponent(svg)}`;
 };
