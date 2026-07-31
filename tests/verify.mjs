@@ -808,6 +808,75 @@ const eventHoverContrast = async (label) => {
 };
 await eventHoverContrast('light');
 
+/*
+  8g-ii. THE OPEN NAV TAB must be readable.
+
+  This assertion exists because the suite had 74 checks and none of them caught the active tab
+  rendering white text on a white background — 1.00:1, invisible, in both themes. The checks
+  around the mega menu tested that it opened and that `aria-expanded` flipped: behaviour, never
+  appearance. A control can be perfectly operable and still unreadable.
+
+  Measured as a ratio rather than `fg !== bg`. The neighbouring event-tile check compares the two
+  colour strings for inequality, which catches only the exact-match case — navy on near-navy
+  passes it while failing a human. Anything that claims to be a contrast check should compute
+  the contrast.
+*/
+const activeNavTabContrast = async (label) => {
+  const trigger = page.locator('nav[aria-label="Main"] button').first();
+  await trigger.click();
+  await page.waitForTimeout(350);
+  const c = await trigger.evaluate((el) => {
+    /*
+      Colours go through a 1×1 canvas rather than a regex.
+
+      Tailwind v4 emits `oklch()`, and scraping digits out of `oklch(0.21 0.006 285.885)` yields
+      rgb(0, 21, 0) — a colour that does not exist on the page. The first version of this
+      assertion did exactly that and passed, having measured a fiction. The canvas makes the
+      browser do the conversion, so every colour space resolves to real sRGB bytes.
+    */
+    const ctx = document.createElement('canvas').getContext('2d');
+    const rgb = (css) => {
+      ctx.clearRect(0, 0, 1, 1);
+      ctx.fillStyle = css;
+      ctx.fillRect(0, 0, 1, 1);
+      return [...ctx.getImageData(0, 0, 1, 1).data].slice(0, 3);
+    };
+    // Walk up for the first non-transparent ancestor: the button's own background is
+    // `transparent` until it is the open one, and a ratio against nothing is meaningless.
+    let node = el;
+    let bg = getComputedStyle(node).backgroundColor;
+    while (bg === 'rgba(0, 0, 0, 0)' && node.parentElement) {
+      node = node.parentElement;
+      bg = getComputedStyle(node).backgroundColor;
+    }
+    return { fg: rgb(getComputedStyle(el).color), bg: rgb(bg) };
+  });
+  const [hi, lo] = [luminance(...c.fg), luminance(...c.bg)].sort((a, b) => b - a);
+  const ratio = (hi + 0.05) / (lo + 0.05);
+  check(
+    `open nav tab clears 4.5:1 (${label})`,
+    ratio >= 4.5,
+    `rgb(${c.fg}) on rgb(${c.bg}) → ${ratio.toFixed(2)}:1`,
+  );
+  // Continuous with the panel it opened, not a block floating above a differently-coloured one.
+  const panelBg = await page
+    .locator('nav[aria-label="Main"] ~ div, header > div')
+    .last()
+    .evaluate(() => {
+      const panel = document.querySelector('header .absolute.top-full');
+      return panel ? getComputedStyle(panel).backgroundColor : null;
+    });
+  const tabBg = await trigger.evaluate((el) => getComputedStyle(el).backgroundColor);
+  check(
+    `open nav tab matches the panel background (${label})`,
+    panelBg !== null && tabBg === panelBg,
+    `tab=${tabBg} panel=${panelBg}`,
+  );
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(200);
+};
+await activeNavTabContrast('light');
+
 // 8h. Fire gauge needle must contrast with its card in both themes
 const needleColor = () =>
   page.evaluate(() => {
@@ -847,6 +916,7 @@ check(
   `light=${lightNeedle} dark=${darkNeedle}`,
 );
 await eventHoverContrast('dark');
+await activeNavTabContrast('dark');
 
 await page.evaluate(() => window.scrollTo(0, 0));
 await page.waitForTimeout(300);

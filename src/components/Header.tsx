@@ -203,18 +203,27 @@ export const Header = ({
               key={category}
               onClick={() => setActiveDesktopNav(activeDesktopNav === category ? null : category)}
               aria-expanded={activeDesktopNav === category}
-              className={`px-2 xl:px-4 h-full font-bold text-[13px] xl:text-base whitespace-nowrap flex items-center gap-1 transition-colors border-b-4 nb-focus-ring-navy dark:focus-visible:outline dark:focus-visible:outline-2 dark:focus-visible:outline-blue-400 ${headerFgClass} ${
+              className={`px-2 xl:px-4 h-full font-bold text-[13px] xl:text-base whitespace-nowrap flex items-center gap-1 transition-colors border-b-4 nb-focus-ring-navy dark:focus-visible:outline dark:focus-visible:outline-2 dark:focus-visible:outline-blue-400 ${
                 activeDesktopNav === category
                   ? hasLogo
-                    ? // The open item becomes a white tab continuous with the white panel below
-                      // it. It used to keep the navy fill and mark itself with a 4px white
-                      // underline — which, sitting directly on top of a white panel, merged into
-                      // it and read as the header's bottom edge deforming under that one item
-                      // rather than as an indicator. Measured: white began 4px higher over the
-                      // active item than anywhere else along the header.
-                      'border-transparent bg-white nb-text-navy'
+                    ? // The open item becomes a tab continuous with the panel below it. It used to
+                      // keep the navy fill and mark itself with a 4px white underline — which,
+                      // sitting directly on top of a white panel, merged into it and read as the
+                      // header's bottom edge deforming under that one item rather than as an
+                      // indicator. Measured: white began 4px higher over the active item than
+                      // anywhere else along the header.
+                      //
+                      // The background must track MegaMenu's own `bg-white dark:bg-zinc-900`. A
+                      // white tab above a zinc-900 panel is not a tab, it is a floating block.
+                      'border-transparent bg-white dark:bg-zinc-900 nb-text-navy dark:text-white'
                     : 'nb-border-navy dark:border-blue-400 nb-text-navy dark:text-blue-400 bg-slate-50 dark:bg-zinc-800'
-                  : `border-transparent ${
+                  : // `headerFgClass` belongs to this branch alone, and that is load-bearing
+                    // rather than tidy. It resolves to `text-white` over the navy header — a
+                    // Tailwind utility — while `nb-text-navy` is a component class (adr/0003).
+                    // Applied to every item unconditionally it outranked the active item's own
+                    // colour and rendered it white on white: measured at 1.00:1, invisible in
+                    // both themes. Mutually exclusive states, not an override hoping to win.
+                    `${headerFgClass} border-transparent ${
                       hasLogo ? 'hover:bg-white/10' : 'hover:bg-slate-50 dark:hover:bg-zinc-800'
                     }`
               }`}
