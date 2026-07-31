@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { NORTH_BAY_LOGO_URL } from '../data/branding';
 import type { Language, NavCategory, TranslationKey } from '../data/i18n';
 import { navCategories } from '../data/navigation';
-import { MegaMenu } from './MegaMenu';
+import { MEGA_MENU_ID, MegaMenu } from './MegaMenu';
 import { MobileMenu } from './MobileMenu';
 import { SearchCombobox } from './SearchCombobox';
 import { UtilityControls } from './UtilityControls';
@@ -62,6 +62,63 @@ export const Header = ({
   const headerRef = useRef<HTMLElement>(null);
   const searchToggleRef = useRef<HTMLButtonElement>(null);
   const searchPanelRef = useRef<HTMLDivElement>(null);
+  const megaPanelRef = useRef<HTMLDivElement>(null);
+  const navRef = useRef<HTMLElement>(null);
+  const triggerRefs = useRef(new Map<NavCategory, HTMLButtonElement>());
+
+  /*
+    THE PANEL IS SIX TAB STOPS FROM THE BUTTON THAT OPENS IT.
+
+    Measured, on the deployed site: open "Services & Payments" and the next six stops are the
+    three remaining nav buttons, the search toggle, the language toggle and the theme toggle.
+    Only then do the links you just asked for arrive. The menu was operable the whole time and
+    behaved correctly by every assertion in the suite — it was simply nowhere near where a
+    keyboard user would look for it.
+
+    The APG's disclosure pattern puts the panel immediately after its button in the DOM, which
+    is not available here: the panel spans the viewport and the trigger sits inside a `max-w-7xl`
+    row, so reparenting it collapses the full-bleed layout. The compensation is to bridge the gap
+    explicitly — Tab off an open trigger enters the panel, Shift+Tab off its first link comes
+    back — so the two are adjacent in practice even though the DOM cannot make them adjacent.
+
+    Forward exit past the last link is deliberately left to the browser rather than trapped. This
+    is a disclosure, not a dialog: nothing here justifies holding focus captive, and `onBlur`
+    below closes the panel when focus genuinely leaves it.
+  */
+  const panelFocusables = () =>
+    megaPanelRef.current
+      ? [...megaPanelRef.current.querySelectorAll<HTMLElement>('a[href], button:not([disabled])')]
+      : [];
+
+  const onTriggerKeyDown = (e: React.KeyboardEvent, category: NavCategory) => {
+    if (e.key !== 'Tab' || e.shiftKey || activeDesktopNav !== category) return;
+    const first = panelFocusables()[0];
+    if (!first) return;
+    e.preventDefault();
+    first.focus();
+  };
+
+  const onPanelKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key !== 'Tab' || !e.shiftKey || !activeDesktopNav) return;
+    const items = panelFocusables();
+    if (items.length === 0 || document.activeElement !== items[0]) return;
+    e.preventDefault();
+    triggerRefs.current.get(activeDesktopNav)?.focus();
+  };
+
+  /*
+    Close when focus leaves for good. `relatedTarget` is the element receiving focus, so this can
+    tell "tabbed out of the menu entirely" from "moved between two links inside it" — the nav
+    itself is excluded too, otherwise Shift+Tab back to the trigger would close the panel it just
+    returned to. A null `relatedTarget` means focus left the document (the browser chrome, another
+    window), which is not a reason to collapse anything.
+  */
+  const onPanelBlur = (e: React.FocusEvent) => {
+    const next = e.relatedTarget as Node | null;
+    if (!next) return;
+    if (megaPanelRef.current?.contains(next) || navRef.current?.contains(next)) return;
+    setActiveDesktopNav(null);
+  };
 
   const closeSearch = useCallback(() => {
     setIsSearchExpanded(false);
@@ -196,13 +253,25 @@ export const Header = ({
           Claiming the wrong widget tells a screen-reader user to expect interactions that do not
           exist. `aria-expanded` alone is the correct and complete contract here.
         */}
-        <nav className="hidden lg:flex h-full shrink-0" aria-label="Main">
+        <nav className="hidden lg:flex h-full shrink-0" aria-label="Main" ref={navRef}>
           {navCategories.map((category) => (
             <button
               type="button"
               key={category}
+              ref={(el) => {
+                if (el) triggerRefs.current.set(category, el);
+                else triggerRefs.current.delete(category);
+              }}
               onClick={() => setActiveDesktopNav(activeDesktopNav === category ? null : category)}
+              onKeyDown={(e) => onTriggerKeyDown(e, category)}
               aria-expanded={activeDesktopNav === category}
+              /*
+                `aria-controls` is set only while the panel exists. The panel is unmounted when
+                closed, and an IDREF pointing at nothing is an ARIA error — it promises assistive
+                technology a target it will fail to find. Naming it only when it is real is both
+                valid and honest; `aria-expanded` already carries the state on its own.
+              */
+              aria-controls={activeDesktopNav === category ? MEGA_MENU_ID : undefined}
               className={`px-2 xl:px-4 h-full font-bold text-[13px] xl:text-base whitespace-nowrap flex items-center gap-1 transition-colors border-b-4 nb-focus-ring-navy dark:focus-visible:outline dark:focus-visible:outline-2 dark:focus-visible:outline-blue-400 ${
                 activeDesktopNav === category
                   ? hasLogo
@@ -361,7 +430,13 @@ export const Header = ({
       </div>
 
       {activeDesktopNav && (
-        <MegaMenu category={activeDesktopNav} categoryLabel={tCategory(activeDesktopNav)} />
+        <MegaMenu
+          category={activeDesktopNav}
+          categoryLabel={tCategory(activeDesktopNav)}
+          panelRef={megaPanelRef}
+          onKeyDown={onPanelKeyDown}
+          onBlur={onPanelBlur}
+        />
       )}
 
       {isMobileMenuOpen && (

@@ -877,6 +877,77 @@ const activeNavTabContrast = async (label) => {
 };
 await activeNavTabContrast('light');
 
+/*
+  8g-iii. THE PANEL MUST BE ONE TAB STOP FROM THE BUTTON THAT OPENS IT.
+
+  This counts stops rather than asserting a mechanism, because the mechanism may reasonably
+  change — the panel could be reparented, or focus moved on open — and the thing that actually
+  matters to a keyboard user survives all of those: after opening a menu, how many times must
+  they press Tab before reaching what they opened?
+
+  It was six on the deployed site. Every existing check around the mega menu passed at the time:
+  they tested that it opened and that aria-expanded flipped, which is behaviour, not reach.
+*/
+const trigger = page.locator('nav[aria-label="Main"] button').first();
+await trigger.click();
+await page.waitForTimeout(300);
+
+const controls = await trigger.getAttribute('aria-controls');
+const target = controls ? await page.locator(`#${controls}`).count() : 0;
+check(
+  'open nav trigger names the panel it controls',
+  Boolean(controls) && target === 1,
+  `aria-controls=${controls ?? '(none)'} → ${target} matching element(s)`,
+);
+
+const panelRole = await page.evaluate((id) => {
+  const el = id && document.getElementById(id);
+  return el ? { role: el.getAttribute('role'), name: el.getAttribute('aria-label') } : null;
+}, controls);
+check(
+  'panel is a named region',
+  panelRole?.role === 'region' && Boolean(panelRole?.name),
+  JSON.stringify(panelRole),
+);
+
+let stops = 0;
+let reached = false;
+for (let i = 1; i <= 10 && !reached; i++) {
+  await page.keyboard.press('Tab');
+  stops = i;
+  /*
+    Panel membership is detected structurally as well as by id.
+
+    Keying only off `aria-controls` made this unable to count at all when the attribute was
+    missing — it reported "never reached" for a panel that was in fact seven stops away, which is
+    a different defect with a different fix. A check that cannot measure the broken case cannot
+    tell you how broken it is.
+  */
+  reached = await page.evaluate((id) => {
+    const el = document.activeElement;
+    if (!el) return false;
+    return Boolean(
+      (id && el.closest(`#${id}`)) ||
+        el.closest('header .absolute.top-full, header [role="region"]'),
+    );
+  }, controls);
+}
+check(
+  'panel content is one Tab from its trigger',
+  reached && stops === 1,
+  reached ? `${stops} stop(s)` : 'never reached within 10 stops',
+);
+
+// And back: Shift+Tab off the first link returns to the trigger rather than stranding focus.
+await page.keyboard.press('Shift+Tab');
+await page.waitForTimeout(150);
+const backOnTrigger = await page.evaluate(
+  () => document.activeElement?.getAttribute('aria-expanded') === 'true',
+);
+check('Shift+Tab from the first link returns to the trigger', backOnTrigger);
+await page.keyboard.press('Escape');
+await page.waitForTimeout(200);
+
 // 8h. Fire gauge needle must contrast with its card in both themes
 const needleColor = () =>
   page.evaluate(() => {

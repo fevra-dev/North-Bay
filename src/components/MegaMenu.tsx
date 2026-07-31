@@ -4,19 +4,54 @@ import { categoryDescriptions, categoryHref, navHref, siteStructure } from '../d
 import { useTranslation } from '../hooks/useTranslation';
 import { CityLink } from './CityLink';
 
+/**
+ * The panel's id, referenced by every trigger's `aria-controls`.
+ *
+ * A single id is safe because only one panel is mounted at a time — opening a second closes the
+ * first. If that ever changes this must become per-category, since duplicate ids would silently
+ * point every trigger at whichever panel the document happened to contain first.
+ */
+export const MEGA_MENU_ID = 'nb-mega-menu';
+
 interface MegaMenuProps {
   category: NavCategory;
   categoryLabel: string;
+  panelRef?: React.Ref<HTMLDivElement>;
+  onKeyDown?: React.KeyboardEventHandler<HTMLDivElement>;
+  onBlur?: React.FocusEventHandler<HTMLDivElement>;
 }
 
 /** Desktop dropdown listing everything under one top-level navigation category. */
-export const MegaMenu = ({ category, categoryLabel }: MegaMenuProps) => {
+export const MegaMenu = ({
+  category,
+  categoryLabel,
+  panelRef,
+  onKeyDown,
+  onBlur,
+}: MegaMenuProps) => {
   const { t, getLabel } = useTranslation();
   const items = siteStructure[category];
   if (!items) return null;
 
   return (
-    <div className="hidden lg:block absolute top-full left-0 w-full bg-white dark:bg-zinc-900 border-b-2 nb-border-ink dark:border-zinc-700 shadow-2xl animate-in fade-in duration-150">
+    /*
+      `role="region"` with a name, rather than a bare div.
+
+      The panel cannot sit next to its trigger in the DOM — it spans the viewport while the
+      trigger sits inside a `max-w-7xl` row, so reparenting it collapses the full-bleed panel to
+      the width of the row. Naming it as a region gives screen-reader users the landmark list as
+      a way in, which is the compensation the APG expects when disclosure content is not
+      DOM-adjacent. Keyboard users get the shortcut in Header: Tab off an open trigger.
+    */
+    <div
+      id={MEGA_MENU_ID}
+      ref={panelRef}
+      role="region"
+      aria-label={categoryLabel}
+      onKeyDown={onKeyDown}
+      onBlur={onBlur}
+      className="hidden lg:block absolute top-full left-0 w-full bg-white dark:bg-zinc-900 border-b-2 nb-border-ink dark:border-zinc-700 shadow-2xl animate-in fade-in duration-150"
+    >
       <div className="max-w-7xl mx-auto px-8 py-10">
         <div className="flex items-start justify-between gap-8 mb-8 border-b border-zinc-200 dark:border-zinc-700 pb-4">
           <div>
