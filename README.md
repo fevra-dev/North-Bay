@@ -87,7 +87,7 @@ their own redesigns, rather than derived from assumption:
 
 | Source | What it informed |
 | --- | --- |
-| **GOV.UK** | Research on step-by-step service flows cautions against running multi-step processes inside a modal — people lose track of where they are. Shaped how the task wizard is scoped and why it states "Step 2 of 3" in text. |
+| **GOV.UK** | Research on step-by-step service flows cautions against running multi-step processes inside a modal, because people lose track of where they are. An earlier version of this concept did exactly that, in a three-step "Start a Business" wizard. It is now a short "before you start" checklist that hands off to the City's own page — a list of what to have ready is not a process, so the citation and the build agree. |
 | **NYC.gov** (2025 relaunch) | Surfacing residents' most common tasks front and centre — the bet the "I want to…" selector makes. |
 | **sf.gov** | Accordion mobile navigation, for the same reason adopted here. Their case studies on small features becoming load-bearing under real demand shaped the alert severity model. |
 | **Tokyo's multilingual resident portal** | How clearly it labels machine-translated content as such rather than presenting it as official text. |
@@ -172,7 +172,7 @@ tab keeps the concept open to come back to. Screen readers are told the destinat
 
 ## Verifying it, rather than asserting it
 
-`tests/verify.mjs` drives a real browser (Playwright) through **72 assertions** across desktop
+`tests/verify.mjs` drives a real browser (Playwright) through **74 assertions** across desktop
 and mobile viewports — the theme toggle repainting, dark mode surviving a reload, the focus trap
 holding across 50 Tab presses in both directions, combobox arrow-key wrapping, `<html lang>`
 switching, landmark structure, heading order, CSV export, zero horizontal overflow at 390px, the

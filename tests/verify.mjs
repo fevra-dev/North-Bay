@@ -130,11 +130,13 @@ check('hero heading translated', /aider/i.test(heroFr), heroFr);
 await langToggle(page).click();
 await page.waitForTimeout(200);
 
-// 6. FOCUS TRAP in the wizard
-await page.selectOption('#task-select', 'wizard_business');
+// 6. FOCUS TRAP in the "Before you start" checklist.
+// The dialog is the one place on the page a keyboard user can be stranded: tabbing past the last
+// control would land back in the page behind an overlay they cannot see. Fifty presses in both
+// directions is well past the number of focusable elements it contains.
+await page.selectOption('#task-select', 'checklist_business');
 await page.waitForTimeout(400);
-const dialogVisible = await page.locator('[role="dialog"]').isVisible();
-check('wizard dialog opens', dialogVisible);
+check('checklist dialog opens', await page.locator('[role="dialog"]').isVisible());
 
 const focusInsideDialog = () =>
   page.evaluate(() => {
@@ -143,7 +145,6 @@ const focusInsideDialog = () =>
   });
 check('focus moves into dialog on open', await focusInsideDialog());
 
-// Tab 25 times — focus must never escape the dialog
 let escaped = false;
 for (let i = 0; i < 25; i++) {
   await page.keyboard.press('Tab');
@@ -154,7 +155,6 @@ for (let i = 0; i < 25; i++) {
 }
 check('focus trap holds over 25 Tabs', !escaped);
 
-// Shift+Tab backwards too
 for (let i = 0; i < 25; i++) {
   await page.keyboard.press('Shift+Tab');
   if (!(await focusInsideDialog())) {
@@ -163,12 +163,36 @@ for (let i = 0; i < 25; i++) {
   }
 }
 check('focus trap holds over 25 Shift+Tabs', !escaped);
-await page.screenshot({ path: `${SHOTS}/desktop-wizard.png` });
+
+// The checklist must end somewhere real — it replaced a wizard whose final button closed the
+// dialog and did nothing, which was the last dead control on the page.
+const checklistCta = await page.evaluate(() => {
+  const a = document.querySelector('[role="dialog"] a[href^="http"]');
+  return a ? { href: a.getAttribute('href'), rel: a.getAttribute('rel') } : null;
+});
+check(
+  "checklist hands off to the City's real page",
+  Boolean(checklistCta?.href?.includes('northbay.ca')) &&
+    (checklistCta?.rel || '').includes('noopener'),
+  JSON.stringify(checklistCta),
+);
+
+// And it says plainly that its contents are illustrative rather than municipal guidance.
+const caveat = await page.evaluate(
+  () => document.querySelector('[role="dialog"]')?.innerText.toLowerCase() ?? '',
+);
+check(
+  'checklist states that it is illustrative',
+  /illustrative|indicatif/.test(caveat),
+  caveat.includes('illustrative') ? 'present' : 'MISSING',
+);
+
+await page.screenshot({ path: `${SHOTS}/desktop-checklist.png` });
 
 // 7. Escape closes dialog and restores focus
 await page.keyboard.press('Escape');
 await page.waitForTimeout(350);
-check('Escape closes wizard', (await page.locator('[role="dialog"]').count()) === 0);
+check('Escape closes the checklist', (await page.locator('[role="dialog"]').count()) === 0);
 
 // 8. Skip link is reachable and visible on focus.
 // Reload first: focus was restored to the wizard's trigger when the dialog closed, so tabbing

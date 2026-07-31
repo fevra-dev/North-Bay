@@ -118,22 +118,16 @@ export const i18n = {
     searchResultsFound: 'results found',
     searchOneResultFound: 'result found',
 
-    // Task wizard
-    wizardBusinessTitle: 'Start a Business Workflow',
-    wizardReportTitle: 'Report an Issue',
-    wizardStep: 'Step',
-    wizardOf: 'of',
-    wizardBack: 'Back',
-    wizardContinue: 'Continue',
-    wizardProceed: 'Proceed to Portal',
-    wizardStep1Title: 'Step 1: Verify Zoning',
-    wizardStep1Body: 'Ensure your proposed location is zoned for your specific business type.',
-    wizardStep1Tip: 'Tip: Use the GIS Portal to look up zoning by address.',
-    wizardStep2Title: 'Step 2: Prepare Documents',
-    wizardStep2ItemA: 'Master Business License (Provincial)',
-    wizardStep2ItemB: 'Floor Plan / Site Plan',
-    wizardStep3Title: 'Step 3: Begin Application',
-    wizardStep3Ready: 'Application Ready',
+    // "Before you start" checklist
+    checklistTitle: 'Before you start',
+    checklistIntro:
+      'Starting a business in North Bay usually means having these ready before you apply.',
+    checklistItem1: 'Confirmation that your location is zoned for your type of business',
+    checklistItem2: 'A provincial Master Business Licence',
+    checklistItem3: 'A floor plan or site plan',
+    checklistCaveat:
+      'This list is illustrative. Confirm the current requirements with the City before you apply.',
+    checklistCta: 'Open the City’s business page',
 
     // Accessibility statement
     a11yTitle: 'Accessibility Statement',
@@ -274,23 +268,16 @@ export const i18n = {
     searchResultsFound: 'résultats trouvés',
     searchOneResultFound: 'résultat trouvé',
 
-    // Task wizard
-    wizardBusinessTitle: 'Démarches pour démarrer une entreprise',
-    wizardReportTitle: 'Signaler un problème',
-    wizardStep: 'Étape',
-    wizardOf: 'sur',
-    wizardBack: 'Précédent',
-    wizardContinue: 'Continuer',
-    wizardProceed: 'Accéder au portail',
-    wizardStep1Title: 'Étape 1 : vérifier le zonage',
-    wizardStep1Body:
-      'Assurez-vous que l’emplacement envisagé est zoné pour votre type d’entreprise.',
-    wizardStep1Tip: 'Conseil : utilisez le portail SIG pour vérifier le zonage par adresse.',
-    wizardStep2Title: 'Étape 2 : préparer les documents',
-    wizardStep2ItemA: 'Licence d’entreprise principale (provinciale)',
-    wizardStep2ItemB: 'Plan d’étage ou plan d’implantation',
-    wizardStep3Title: 'Étape 3 : commencer la demande',
-    wizardStep3Ready: 'Demande prête',
+    // Liste « Avant de commencer »
+    checklistTitle: 'Avant de commencer',
+    checklistIntro:
+      'Pour démarrer une entreprise à North Bay, il faut généralement avoir ces éléments en main avant de faire une demande.',
+    checklistItem1: 'La confirmation que votre emplacement est zoné pour votre type d’entreprise',
+    checklistItem2: 'Une licence d’entreprise principale provinciale',
+    checklistItem3: 'Un plan d’étage ou un plan d’implantation',
+    checklistCaveat:
+      'Cette liste est fournie à titre indicatif. Confirmez les exigences en vigueur auprès de la Ville avant de faire une demande.',
+    checklistCta: 'Ouvrir la page des entreprises de la Ville',
 
     // Accessibility statement
     a11yTitle: 'Déclaration d’accessibilité',

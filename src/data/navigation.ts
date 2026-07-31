@@ -75,6 +75,7 @@ export const cityLinks = {
   events: `${CITY_BASE}/our-community/events-programs/`,
   contact: `${CITY_BASE}/contact-us/`,
   // The City serves /privacy/ as a redirect to /legal/; link the destination directly.
+  startBusiness: `${CITY_BASE}/business/start-grow-a-business/`,
   legal: `${CITY_BASE}/legal/`,
   accessibility: `${CITY_BASE}/city-government/accessibility/`,
 } as const;
@@ -101,10 +102,10 @@ export const cityLinks = {
  */
 export type QuickTaskAction =
   | 'link_taxes'
-  | 'wizard_report'
+  | 'link_report'
   | 'link_parking'
   | 'link_job'
-  | 'wizard_business'
+  | 'checklist_business'
   | 'link_renovating'
   | 'link_moving'
   | 'link_family'
@@ -131,7 +132,13 @@ export const quickTasks: readonly QuickTask[] = [
     action: 'link_taxes',
     href: cityLinks.propertyTaxes,
   },
-  { label: L('Report a Pothole', 'Signaler un nid-de-poule'), action: 'wizard_report', href: null },
+  {
+    // Reporting a pothole is one action, not a journey. It used to open a three-step wizard,
+    // which was more process than the task has.
+    label: L('Report a Pothole', 'Signaler un nid-de-poule'),
+    action: 'link_report',
+    href: cityLinks.reportProblem,
+  },
   {
     label: L('Pay a Parking Ticket', 'Payer une contravention'),
     action: 'link_parking',
@@ -139,8 +146,10 @@ export const quickTasks: readonly QuickTask[] = [
   },
   { label: L('Find a Job', 'Trouver un emploi'), action: 'link_job', href: cityLinks.careers },
   {
+    // The one task where a short preparation checklist earns its place: a resident who arrives
+    // at the application without zoning confirmed has already wasted the trip.
     label: L('Start a Business', 'Démarrer une entreprise'),
-    action: 'wizard_business',
+    action: 'checklist_business',
     href: null,
   },
   {

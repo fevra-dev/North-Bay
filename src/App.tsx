@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AccessibilityStatement } from './components/AccessibilityStatement';
 import { AlertBanner } from './components/AlertBanner';
+import { BeforeYouStart } from './components/BeforeYouStart';
 import { CityServices } from './components/CityServices';
 import { CurrentConditions } from './components/CurrentConditions';
 import { DashboardGrid } from './components/DashboardGrid';
@@ -11,23 +12,13 @@ import { Hero } from './components/Hero';
 import { MeetingRegistry } from './components/MeetingRegistry';
 import { MunicipalDashboard } from './components/MunicipalDashboard';
 import { SkipLink } from './components/SkipLink';
-import { TaskWizard, type WizardState } from './components/TaskWizard';
 import type { MeetingFilter } from './data/feeds';
-import type { NavCategory, TranslationKey } from './data/i18n';
+import type { NavCategory } from './data/i18n';
 import { type QuickTaskAction, quickTasks } from './data/navigation';
 import { useFocusTrap } from './hooks/useFocusTrap';
 import { useScrollLock } from './hooks/useScrollLock';
 import { useTheme } from './hooks/useTheme';
 import { TranslationProvider, useTranslation } from './hooks/useTranslation';
-
-/**
- * Which quick tasks open a guided wizard rather than linking straight out. The value is a
- * translation key, not a title — the dialog heading has to follow the active language.
- */
-const WIZARD_TASKS: Partial<Record<QuickTaskAction, TranslationKey>> = {
-  wizard_business: 'wizardBusinessTitle',
-  wizard_report: 'wizardReportTitle',
-};
 
 /**
  * Composition root. Holds only the state that genuinely spans more than one region of the page —
@@ -44,15 +35,15 @@ const AppContent = () => {
   const [activeDesktopNav, setActiveDesktopNav] = useState<NavCategory | null>(null);
   const [expandedMobileCategory, setExpandedMobileCategory] = useState<NavCategory | null>(null);
   const [meetingFilter, setMeetingFilter] = useState<MeetingFilter>('All');
-  const [wizard, setWizard] = useState<WizardState>({ isOpen: false, step: 1, titleKey: null });
+  const [isChecklistOpen, setIsChecklistOpen] = useState(false);
   const [isA11yStatementOpen, setIsA11yStatementOpen] = useState(false);
   const [showHeaderSearch, setShowHeaderSearch] = useState(false);
 
-  const wizardPanelRef = useRef<HTMLDivElement>(null);
+  const checklistPanelRef = useRef<HTMLDivElement>(null);
   const a11yDialogRef = useRef<HTMLDivElement>(null);
   const heroSearchRef = useRef<HTMLDivElement>(null);
 
-  const isAnyDialogOpen = wizard.isOpen || isA11yStatementOpen;
+  const isAnyDialogOpen = isChecklistOpen || isA11yStatementOpen;
 
   useScrollLock(isMobileMenuOpen || isAnyDialogOpen);
   useFocusTrap(a11yDialogRef, isA11yStatementOpen);
@@ -84,8 +75,8 @@ const AppContent = () => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return;
-      if (wizard.isOpen) {
-        setWizard((prev) => ({ ...prev, isOpen: false }));
+      if (isChecklistOpen) {
+        setIsChecklistOpen(false);
       } else if (isA11yStatementOpen) {
         setIsA11yStatementOpen(false);
       } else if (isMobileMenuOpen) {
@@ -97,7 +88,7 @@ const AppContent = () => {
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [wizard.isOpen, isA11yStatementOpen, isMobileMenuOpen, activeDesktopNav]);
+  }, [isChecklistOpen, isA11yStatementOpen, isMobileMenuOpen, activeDesktopNav]);
 
   const toggleMobileMenu = useCallback(() => {
     setIsMobileMenuOpen((prev) => {
@@ -111,9 +102,8 @@ const AppContent = () => {
   }, []);
 
   const handleTaskSelect = useCallback((action: QuickTaskAction) => {
-    const titleKey = WIZARD_TASKS[action];
-    if (titleKey) {
-      setWizard({ isOpen: true, step: 1, titleKey });
+    if (action === 'checklist_business') {
+      setIsChecklistOpen(true);
       return;
     }
     /*
@@ -189,7 +179,11 @@ const AppContent = () => {
 
       <Footer t={t} onOpenAccessibilityStatement={() => setIsA11yStatementOpen(true)} />
 
-      <TaskWizard state={wizard} setState={setWizard} panelRef={wizardPanelRef} />
+      <BeforeYouStart
+        isOpen={isChecklistOpen}
+        onClose={() => setIsChecklistOpen(false)}
+        panelRef={checklistPanelRef}
+      />
       <AccessibilityStatement
         isOpen={isA11yStatementOpen}
         onClose={() => setIsA11yStatementOpen(false)}
