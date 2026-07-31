@@ -172,7 +172,7 @@ tab keeps the concept open to come back to. Screen readers are told the destinat
 
 ## Verifying it, rather than asserting it
 
-`tests/verify.mjs` drives a real browser (Playwright) through **69 assertions** across desktop
+`tests/verify.mjs` drives a real browser (Playwright) through **70 assertions** across desktop
 and mobile viewports — the theme toggle repainting, dark mode surviving a reload, the focus trap
 holding across 50 Tab presses in both directions, combobox arrow-key wrapping, `<html lang>`
 switching, landmark structure, heading order, CSV export, zero horizontal overflow at 390px, the

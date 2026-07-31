@@ -250,8 +250,9 @@ export const Header = ({
             type="button"
             className={`lg:hidden relative w-10 h-10 flex flex-col justify-center items-center gap-1.5 focus:outline-none focus-visible:ring-2 nb-focus-ring-navy focus-visible:ring-offset-2 rounded-sm ${headerFgClass}`}
             onClick={toggleMobileMenu}
-            aria-label="Toggle Menu"
+            aria-label={t('toggleMenu')}
             aria-expanded={isMobileMenuOpen}
+            data-menu-toggle=""
             aria-controls="mobile-menu-panel"
           >
             <span

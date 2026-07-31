@@ -27,6 +27,18 @@ const browser = await chromium
   .launch(process.env.NB_CHROMIUM ? {} : { channel: 'chrome' })
   .catch(() => chromium.launch());
 
+/*
+  Controls are selected by data attribute, not by accessible name.
+
+  Selecting on `name: /switch to french/i` only works while that label is English, which is the
+  same assumption that let "Data Saver" and "Dark" ship untranslated in the mobile menu. On a
+  bilingual site a test that reads English labels cannot check the French build.
+*/
+const langToggle = (page) => page.locator('[data-lang-toggle]:visible').first();
+const themeToggle = (page) => page.locator('[data-theme-toggle]:visible').first();
+const bandwidthToggle = (page) => page.locator('[data-bandwidth-toggle]:visible').first();
+const menuToggle = (page) => page.locator('[data-menu-toggle]').first();
+
 // ---------- Desktop ----------
 const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
 const page = await ctx.newPage();
@@ -56,11 +68,11 @@ const htmlHasDark = () => page.evaluate(() => document.documentElement.classList
 
 const startedDark = await htmlHasDark();
 if (startedDark) {
-  await page.getByRole('button', { name: /switch to light mode/i }).click();
+  await themeToggle(page).click();
   await page.waitForTimeout(250);
 }
 const lightBg = await bgOf();
-await page.getByRole('button', { name: /switch to dark mode/i }).click();
+await themeToggle(page).click();
 await page.waitForTimeout(250);
 const darkOn = await htmlHasDark();
 const darkBg = await bgOf();
@@ -77,7 +89,7 @@ await page.reload({ waitUntil: 'networkidle' });
 check('dark mode persists after reload', (await htmlHasDark()) === true);
 
 // back to light for the light screenshot
-await page.getByRole('button', { name: /switch to light mode/i }).click();
+await themeToggle(page).click();
 await page.waitForTimeout(250);
 await page.screenshot({ path: `${SHOTS}/desktop-light.png`, fullPage: false });
 
@@ -109,13 +121,13 @@ await page.waitForTimeout(150);
 check('Escape closes listbox', (await page.locator('[role="listbox"]').count()) === 0);
 
 // 5. Language toggle
-await page.getByRole('button', { name: /switch to french/i }).click();
+await langToggle(page).click();
 await page.waitForTimeout(250);
 const htmlLang = await page.evaluate(() => document.documentElement.lang);
 const heroFr = await page.locator('h1').first().innerText();
 check('language toggle sets <html lang>', htmlLang === 'fr', `lang=${htmlLang}`);
 check('hero heading translated', /aider/i.test(heroFr), heroFr);
-await page.getByRole('button', { name: /switch to english/i }).click();
+await langToggle(page).click();
 await page.waitForTimeout(200);
 
 // 6. FOCUS TRAP in the wizard
@@ -226,7 +238,7 @@ for (const width of [1024, 1280, 1440, 1920]) {
 }
 // Back to English at the standard width for everything that follows.
 if ((await page.evaluate(() => document.documentElement.lang)) !== 'en') {
-  await page.getByRole('button', { name: /switch to english/i }).click();
+  await langToggle(page).click();
   await page.waitForTimeout(250);
 }
 await page.setViewportSize({ width: 1440, height: 900 });
@@ -431,7 +443,7 @@ await page.waitForTimeout(300);
 // English table headers and an English search index. Rather than assert a handful of strings,
 // scan the whole rendered page for known English-only markers — anything that survives the
 // switch is by definition untranslated.
-await page.getByRole('button', { name: /switch to french/i }).click();
+await langToggle(page).click();
 await page.waitForTimeout(400);
 await page.evaluate(() => window.scrollTo(0, 0));
 await page.waitForTimeout(200);
@@ -494,6 +506,35 @@ const frenchLeaks = await page.evaluate(async () => {
   ];
   return markers.filter((m) => [...seen].some((txt) => txt.includes(m)));
 });
+// The desktop scan cannot see the mobile menu, because it is not rendered at this width. That
+// blind spot is how "Data Saver" and "Dark" stayed English through a pass that reported clean.
+const mobileFrenchLeaks = await (async () => {
+  const mctx = await browser.newContext({
+    viewport: { width: 390, height: 844 },
+    isMobile: true,
+    hasTouch: true,
+  });
+  const mp = await mctx.newPage();
+  await mp.goto(APP_URL, { waitUntil: 'networkidle' });
+  await menuToggle(mp).click();
+  await mp.waitForTimeout(400);
+  await langToggle(mp).click();
+  await mp.waitForTimeout(500);
+  // Expand a category so its contents are in the DOM too.
+  await mp.locator('#mobile-menu-panel nav button').first().click();
+  await mp.waitForTimeout(350);
+  const text = await mp.locator('#mobile-menu-panel').innerText();
+  await mctx.close();
+  return ['Data Saver', 'Standard', 'Dark', 'Light', 'Garbage', 'Property Taxes', 'Parking'].filter(
+    (m) => text.includes(m),
+  );
+})();
+check(
+  'no English content leaks through in the French mobile menu',
+  mobileFrenchLeaks.length === 0,
+  mobileFrenchLeaks.length ? `untranslated: ${mobileFrenchLeaks.join(' | ')}` : 'clean',
+);
+
 check(
   'no English content leaks through in French mode',
   frenchLeaks.length === 0,
@@ -524,7 +565,7 @@ for (const [term, expect] of [
 }
 await frSearch.fill('');
 await frSearch.press('Escape');
-await page.getByRole('button', { name: /switch to english/i }).click();
+await langToggle(page).click();
 await page.waitForTimeout(300);
 
 // 8b-4. EVERY OUTBOUND LINK RESOLVES, AND IS SAFELY TARGETED.
@@ -690,7 +731,7 @@ check(
 );
 
 // 10b. Dark-theme checks that only make sense with the theme actually on.
-await page.getByRole('button', { name: /switch to dark mode/i }).click();
+await themeToggle(page).click();
 await page.waitForTimeout(400);
 const darkNeedle = await needleColor();
 check(
@@ -709,7 +750,7 @@ check(
   `worst backdrop rgb(${heroDark.rgb}) → ${heroDark.ratio.toFixed(2)}:1`,
 );
 
-await page.getByRole('button', { name: /switch to light mode/i }).click();
+await themeToggle(page).click();
 await page.waitForTimeout(300);
 
 // 10c. Data-saver drops the hero photograph — it is the heaviest asset on the page, and the
@@ -717,7 +758,7 @@ await page.waitForTimeout(300);
 const heroImgsBefore = await page.evaluate(
   () => document.querySelectorAll('main section img').length,
 );
-await page.getByRole('button', { name: /data saver/i }).click();
+await bandwidthToggle(page).click();
 await page.waitForTimeout(400);
 const heroImgsAfter = await page.evaluate(
   () => document.querySelectorAll('main section img').length,
@@ -727,7 +768,7 @@ check(
   heroImgsBefore > 0 && heroImgsAfter === 0,
   `${heroImgsBefore} -> ${heroImgsAfter}`,
 );
-await page.getByRole('button', { name: /standard mode/i }).click();
+await bandwidthToggle(page).click();
 await page.waitForTimeout(300);
 
 // 11. Landmarks
@@ -777,7 +818,7 @@ check('no horizontal overflow on 390px', overflow <= 1, `${overflow}px`);
 await mp.screenshot({ path: `${SHOTS}/mobile-home.png`, fullPage: false });
 
 // open the mobile menu
-await mp.getByRole('button', { name: /toggle menu/i }).click();
+await menuToggle(mp).click();
 await mp.waitForTimeout(400);
 const panelVisible = await mp.locator('#mobile-menu-panel').isVisible();
 check('mobile menu opens', panelVisible);
@@ -808,10 +849,7 @@ await mp.waitForTimeout(350);
 check('accordion expands in place', (await catBtn.getAttribute('aria-expanded')) === 'true');
 
 // dark mode on mobile
-await mp
-  .getByRole('button', { name: /^Light$|^Dark$/ })
-  .first()
-  .click();
+await themeToggle(mp).click();
 await mp.waitForTimeout(300);
 check(
   'mobile theme toggle works',

@@ -1,6 +1,7 @@
 import { Moon, Sun, WifiOff } from 'lucide-react';
 import { NORTH_BAY_LOGO_URL } from '../data/branding';
 import type { Language } from '../data/i18n';
+import { useTranslation } from '../hooks/useTranslation';
 
 export interface UtilityControlsProps {
   lang: Language;
@@ -33,6 +34,7 @@ export const UtilityControls = ({
   toggleLowBandwidth,
   headerFgClass = '',
 }: UtilityControlsProps) => {
+  const { t } = useTranslation();
   const hasLogo = Boolean(NORTH_BAY_LOGO_URL);
   const buttonBase = `flex items-center justify-center w-9 h-9 rounded-sm transition-colors focus:outline-none focus-visible:ring-2 nb-focus-ring-navy ${
     hasLogo ? 'hover:bg-white/10' : 'hover:bg-slate-100 dark:hover:bg-zinc-800'
@@ -47,8 +49,9 @@ export const UtilityControls = ({
         type="button"
         onClick={toggleLowBandwidth}
         aria-pressed={isLowBandwidth}
-        aria-label={isLowBandwidth ? 'Switch to standard mode' : 'Switch to data saver mode'}
-        title={isLowBandwidth ? 'Standard Mode' : 'Data Saver Mode'}
+        aria-label={isLowBandwidth ? t('switchToStandard') : t('switchToDataSaver')}
+        title={isLowBandwidth ? t('standardLabel') : t('dataSaverLabel')}
+        data-bandwidth-toggle=""
         className={buttonBase}
       >
         <WifiOff
@@ -71,8 +74,9 @@ export const UtilityControls = ({
       <button
         type="button"
         onClick={toggleLanguage}
-        aria-label={lang === 'en' ? 'Switch to French' : 'Switch to English'}
+        aria-label={lang === 'en' ? t('switchToFrench') : t('switchToEnglish')}
         title={lang === 'en' ? 'Français' : 'English'}
+        data-lang-toggle=""
         className={`flex items-center justify-center min-w-9 h-9 px-2 rounded-sm text-sm font-black tracking-wide transition-colors focus:outline-none focus-visible:ring-2 nb-focus-ring-navy ${headerFgClass} ${
           hasLogo ? 'hover:bg-white/10' : 'hover:bg-slate-100 dark:hover:bg-zinc-800'
         }`}
@@ -86,8 +90,9 @@ export const UtilityControls = ({
         type="button"
         onClick={toggleTheme}
         aria-pressed={isDarkMode}
-        aria-label={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-        title={isDarkMode ? 'Light Mode' : 'Dark Mode'}
+        aria-label={isDarkMode ? t('switchToLight') : t('switchToDark')}
+        title={isDarkMode ? t('lightLabel') : t('darkLabel')}
+        data-theme-toggle=""
         className={`${buttonBase} ${headerFgClass}`}
       >
         {isDarkMode ? <Moon size={16} aria-hidden="true" /> : <Sun size={16} aria-hidden="true" />}

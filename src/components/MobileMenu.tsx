@@ -68,6 +68,8 @@ export const MobileMenu = ({
                 type="button"
                 onClick={toggleLowBandwidth}
                 aria-pressed={isLowBandwidth}
+                aria-label={isLowBandwidth ? t('switchToStandard') : t('switchToDataSaver')}
+                data-bandwidth-toggle=""
                 className="flex flex-col items-center gap-1.5 text-xs font-bold text-zinc-600 dark:text-zinc-300 nb-focus-ring-navy rounded-sm px-1"
               >
                 <WifiOff
@@ -75,7 +77,7 @@ export const MobileMenu = ({
                   className={isLowBandwidth ? 'nb-text-navy dark:text-blue-400' : ''}
                   aria-hidden="true"
                 />
-                {isLowBandwidth ? 'Standard' : 'Data Saver'}
+                {isLowBandwidth ? t('standardLabel') : t('dataSaverLabel')}
               </button>
               {/*
               lang attribute on the label: "Français" is a French string even while the
@@ -85,7 +87,8 @@ export const MobileMenu = ({
               <button
                 type="button"
                 onClick={toggleLanguage}
-                aria-label={lang === 'en' ? 'Switch to French' : 'Switch to English'}
+                aria-label={lang === 'en' ? t('switchToFrench') : t('switchToEnglish')}
+                data-lang-toggle=""
                 className="flex flex-col items-center gap-1.5 text-xs font-bold text-zinc-600 dark:text-zinc-300 nb-focus-ring-navy rounded-sm px-1"
               >
                 <span className="text-lg font-black leading-none" aria-hidden="true">
@@ -99,6 +102,8 @@ export const MobileMenu = ({
                 type="button"
                 onClick={toggleTheme}
                 aria-pressed={isDarkMode}
+                aria-label={isDarkMode ? t('switchToLight') : t('switchToDark')}
+                data-theme-toggle=""
                 className="flex flex-col items-center gap-1.5 text-xs font-bold text-zinc-600 dark:text-zinc-300 nb-focus-ring-navy rounded-sm px-1"
               >
                 {isDarkMode ? (
@@ -106,7 +111,7 @@ export const MobileMenu = ({
                 ) : (
                   <Sun size={20} aria-hidden="true" />
                 )}
-                {isDarkMode ? 'Dark' : 'Light'}
+                {isDarkMode ? t('darkLabel') : t('lightLabel')}
               </button>
             </div>
           </div>

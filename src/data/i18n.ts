@@ -163,6 +163,20 @@ export const i18n = {
     a11yReviewed: 'Last reviewed: July 2026.',
     closeDialog: 'Close dialog',
     opensOnCitySite: '(opens northbay.ca in a new tab)',
+
+    // Utility controls. These are the accessible names a screen reader announces, so leaving
+    // them in English would mean a francophone user hearing English for every control.
+    dataSaverLabel: 'Data Saver',
+    standardLabel: 'Standard',
+    darkLabel: 'Dark',
+    lightLabel: 'Light',
+    switchToFrench: 'Switch to French',
+    switchToEnglish: 'Switch to English',
+    switchToDark: 'Switch to dark mode',
+    switchToLight: 'Switch to light mode',
+    switchToDataSaver: 'Switch to data saver mode',
+    switchToStandard: 'Switch to standard mode',
+    toggleMenu: 'Toggle menu',
   },
   fr: {
     title: 'Ville de North Bay',
@@ -307,6 +321,19 @@ export const i18n = {
     a11yReviewed: 'Dernière révision : juillet 2026.',
     closeDialog: 'Fermer le dialogue',
     opensOnCitySite: '(ouvre northbay.ca dans un nouvel onglet)',
+
+    // Utility controls.
+    dataSaverLabel: 'Économie de données',
+    standardLabel: 'Standard',
+    darkLabel: 'Sombre',
+    lightLabel: 'Clair',
+    switchToFrench: 'Passer au français',
+    switchToEnglish: 'Switch to English',
+    switchToDark: 'Passer au mode sombre',
+    switchToLight: 'Passer au mode clair',
+    switchToDataSaver: 'Passer au mode économie de données',
+    switchToStandard: 'Passer au mode standard',
+    toggleMenu: 'Afficher ou masquer le menu',
   },
 } as const;
 
