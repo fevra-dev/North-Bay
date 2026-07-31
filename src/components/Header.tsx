@@ -196,21 +196,39 @@ export const Header = ({
             for a share of one row. This is also what the City's own site does, and what most
             government sites converge on, for the same reason.
           */}
-          {showHeaderSearch && (
-            <button
-              type="button"
-              onClick={() => setIsSearchExpanded(true)}
-              aria-label={t('searchLabel')}
-              aria-expanded={isSearchExpanded}
-              data-search-toggle=""
-              className={`hidden lg:flex items-center justify-center w-10 h-10 rounded-sm transition-colors focus:outline-none focus-visible:ring-2 nb-focus-ring-navy ${headerFgClass} ${
-                hasLogo ? 'hover:bg-white/10' : 'hover:bg-slate-100 dark:hover:bg-zinc-800'
-              }`}
-              ref={searchToggleRef}
-            >
-              <Search size={20} strokeWidth={2.5} aria-hidden="true" />
-            </button>
-          )}
+          {/*
+            Always rendered, faded rather than mounted.
+
+            Mounting it on scroll inserted a 40px button into the flex row, which pushed the whole
+            navigation 24px sideways the moment the hero search left the viewport — a visible
+            lurch in the one element a visitor is most likely to be reading at the time. Reserving
+            the space from the start costs nothing and the row never moves.
+
+            Hidden state is complete rather than merely visual: `opacity-0` alone would leave a
+            control that is invisible but still clickable and still in the tab order, which is a
+            worse failure than the shift. `pointer-events-none`, `tabIndex={-1}` and `aria-hidden`
+            travel together with the fade.
+
+            `xl` rather than `lg`, because reserving the space permanently costs 40px that the
+            1024px breakpoint does not have in French — the row overflowed by 26px. Below 1280 the
+            hero's own search is a scroll away, which is the trade: no header search at that width
+            rather than a header that moves, or one that runs off the side.
+          */}
+          <button
+            type="button"
+            onClick={() => setIsSearchExpanded(true)}
+            aria-label={t('searchLabel')}
+            aria-expanded={isSearchExpanded}
+            aria-hidden={!showHeaderSearch}
+            tabIndex={showHeaderSearch ? 0 : -1}
+            data-search-toggle=""
+            className={`hidden xl:flex items-center justify-center w-10 h-10 rounded-sm transition-opacity duration-200 focus:outline-none focus-visible:ring-2 nb-focus-ring-navy ${headerFgClass} ${
+              hasLogo ? 'hover:bg-white/10' : 'hover:bg-slate-100 dark:hover:bg-zinc-800'
+            } ${showHeaderSearch ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+            ref={searchToggleRef}
+          >
+            <Search size={20} strokeWidth={2.5} aria-hidden="true" />
+          </button>
 
           <UtilityControls
             lang={lang}
@@ -261,7 +279,7 @@ export const Header = ({
         {isSearchExpanded && (
           <div
             ref={searchPanelRef}
-            className={`hidden lg:flex absolute inset-0 items-center gap-3 px-4 sm:px-8 ${
+            className={`hidden xl:flex absolute inset-0 items-center gap-3 px-4 sm:px-8 ${
               hasLogo ? 'nb-bg-navy dark:bg-blue-950' : 'bg-white dark:bg-zinc-900'
             }`}
           >

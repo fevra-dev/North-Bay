@@ -346,16 +346,55 @@ check(
 // because a search control that has to be clicked twice is slower than the field it replaced.
 const searchToggle = () => page.locator('header [data-search-toggle]');
 
+// The toggle occupies its space from the start and fades in, rather than mounting on scroll.
+// Mounting it inserted a 40px button into the flex row and shoved the whole navigation 24px
+// sideways at exactly the moment a visitor is most likely to be reading it. Assert both halves:
+// the hidden state has to be genuinely hidden (not merely transparent-but-clickable), and the
+// row must not move between the two states.
+const toggleState = () =>
+  page.evaluate(() => {
+    const el = document.querySelector('header [data-search-toggle]');
+    if (!el) return null;
+    return {
+      opacity: getComputedStyle(el).opacity,
+      pointerEvents: getComputedStyle(el).pointerEvents,
+      tabIndex: el.tabIndex,
+      ariaHidden: el.getAttribute('aria-hidden'),
+    };
+  });
+const navBox = () =>
+  page.evaluate(() => {
+    const r = document.querySelector('header nav[aria-label="Main"]').getBoundingClientRect();
+    return { left: Math.round(r.left), right: Math.round(r.right) };
+  });
+
 await page.evaluate(() => window.scrollTo(0, 0));
-await page.waitForTimeout(450);
+await page.waitForTimeout(500);
+const hidden = await toggleState();
+const navAtTop = await navBox();
 check(
-  'search toggle absent at top of page (hero field is in view)',
-  (await searchToggle().count()) === 0,
+  'search toggle is fully hidden at top of page',
+  hidden?.opacity === '0' &&
+    hidden?.pointerEvents === 'none' &&
+    hidden?.tabIndex === -1 &&
+    hidden?.ariaHidden === 'true',
+  JSON.stringify(hidden),
 );
 
 await page.evaluate(() => window.scrollTo(0, 1400));
-await page.waitForTimeout(550);
-check('search toggle appears on scroll', await searchToggle().isVisible());
+await page.waitForTimeout(700);
+const shown = await toggleState();
+const navScrolled = await navBox();
+check(
+  'search toggle becomes visible and tabbable on scroll',
+  shown?.opacity === '1' && shown?.tabIndex === 0 && shown?.ariaHidden === 'false',
+  JSON.stringify(shown),
+);
+check(
+  'navigation does not shift when the toggle appears',
+  navAtTop.left === navScrolled.left && navAtTop.right === navScrolled.right,
+  `top=${JSON.stringify(navAtTop)} scrolled=${JSON.stringify(navScrolled)}`,
+);
 
 await searchToggle().click();
 await page.waitForTimeout(400);
