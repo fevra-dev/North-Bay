@@ -16,7 +16,7 @@ export const MegaMenu = ({ category, categoryLabel }: MegaMenuProps) => {
   if (!items) return null;
 
   return (
-    <div className="hidden lg:block absolute top-full left-0 w-full bg-white dark:bg-zinc-900 border-b-2 nb-border-ink dark:border-zinc-700 shadow-2xl animate-in slide-in-from-top-2 duration-200">
+    <div className="hidden lg:block absolute top-full left-0 w-full bg-white dark:bg-zinc-900 border-b-2 nb-border-ink dark:border-zinc-700 shadow-2xl animate-in fade-in duration-150">
       <div className="max-w-7xl mx-auto px-8 py-10">
         <div className="flex items-start justify-between gap-8 mb-8 border-b border-zinc-200 dark:border-zinc-700 pb-4">
           <div>

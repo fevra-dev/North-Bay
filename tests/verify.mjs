@@ -483,7 +483,7 @@ const frenchLeaks = await page.evaluate(async () => {
   };
   collect();
   for (const btn of document.querySelectorAll('header nav[aria-label="Main"] button')) {
-    btn.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }));
+    btn.click();
     await sleep(150);
     collect();
   }
@@ -605,10 +605,12 @@ await page.waitForTimeout(300);
         .filter((h) => h?.startsWith('http')),
     );
   const found = new Set(await collect());
+  // Click, not hover: the mega menus open on activation now (see the note in Header.tsx on the
+  // disclosure pattern), so a test that hovers would silently collect nothing.
   const navButtons = page.locator('header nav[aria-label="Main"] button');
   const navCount = await navButtons.count();
   for (let i = 0; i < navCount; i++) {
-    await navButtons.nth(i).hover();
+    await navButtons.nth(i).click();
     await page.waitForTimeout(300);
     for (const h of await collect()) found.add(h);
   }

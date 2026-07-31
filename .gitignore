@@ -30,3 +30,7 @@ Refernce Original Site/
 
 # Local working references and screenshots dropped in for review — not repo content.
 fix/
+
+# Scratch probes written while diagnosing a specific bug. They are throwaway by nature —
+# the checks worth keeping live in tests/verify.mjs.
+.*.mjs

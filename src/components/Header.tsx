@@ -59,6 +59,7 @@ export const Header = ({
   const headerFgClass = hasLogo ? 'text-white' : 'text-zinc-900 dark:text-zinc-100';
 
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  const headerRef = useRef<HTMLElement>(null);
   const searchToggleRef = useRef<HTMLButtonElement>(null);
   const searchPanelRef = useRef<HTMLDivElement>(null);
 
@@ -93,15 +94,39 @@ export const Header = ({
     if (!showHeaderSearch) setIsSearchExpanded(false);
   }, [showHeaderSearch]);
 
+  /*
+    A click-opened menu needs a way out that is not the button that opened it. Escape is handled
+    centrally in App; this closes on a click anywhere outside the header.
+
+    `mousedown` rather than `click`: a click that begins outside the panel and ends inside it —
+    a text selection dragged out of the menu, a slightly wandering pointer — would otherwise
+    dismiss the thing the person is reading. `touchstart` alongside it, because iOS does not
+    reliably emit a `mousedown` for a tap on a non-interactive area.
+  */
+  useEffect(() => {
+    if (!activeDesktopNav) return;
+    const onPointerDown = (e: MouseEvent | TouchEvent) => {
+      const header = headerRef.current;
+      if (!header || !(e.target instanceof Node)) return;
+      if (!header.contains(e.target)) setActiveDesktopNav(null);
+    };
+    document.addEventListener('mousedown', onPointerDown);
+    document.addEventListener('touchstart', onPointerDown);
+    return () => {
+      document.removeEventListener('mousedown', onPointerDown);
+      document.removeEventListener('touchstart', onPointerDown);
+    };
+  }, [activeDesktopNav, setActiveDesktopNav]);
+
   return (
     <header
+      ref={headerRef}
       className={`print:hidden sticky top-0 border-b-2 transition-colors nb-sticky-header ${
         hasLogo
           ? 'nb-bg-navy dark:bg-blue-950 border-transparent'
           : 'bg-white dark:bg-zinc-900 nb-border-ink dark:border-zinc-700'
       }`}
       style={{ zIndex: 100 }}
-      onMouseLeave={() => setActiveDesktopNav(null)}
     >
       {/*
         `min-w-0` on the row and on the nav below it. Without it a flex child refuses to shrink
@@ -116,7 +141,7 @@ export const Header = ({
         that is not an edge case. Sizes below step down at `lg` and back up at `xl` so the row
         fits the longer language at every desktop width rather than only the shorter one.
       */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-8 h-20 flex items-center justify-between relative z-10 gap-2 xl:gap-4 min-w-0">
+      <div className="max-w-7xl mx-auto px-4 sm:px-8 h-20 flex items-center justify-between relative z-10 bg-inherit gap-2 xl:gap-4 min-w-0">
         <a href="#" className="flex items-center gap-3 shrink-0">
           {hasLogo ? (
             <img src={NORTH_BAY_LOGO_URL} alt={t('title')} className="h-12 w-auto" />
@@ -150,19 +175,44 @@ export const Header = ({
           The nav is now incompressible and the search beside it is the flexible element, so
           when space runs short the search gives way instead of the navigation being overrun.
         */}
+        {/*
+          CLICK TO OPEN, NOT HOVER.
+
+          This opened on `onMouseEnter` and `onFocus`, which is the more common pattern and the
+          worse one on both counts.
+
+          `onFocus` was the sharper problem: a keyboard user tabbing across the header opened
+          every menu in turn, each one dumping fifteen links into the tab order they then had to
+          walk out of. Nobody asked for any of them. The WAI-ARIA Authoring Practices' disclosure
+          navigation pattern is explicit that these toggle on activation — click or Enter — for
+          exactly this reason.
+
+          Hover-to-open also has no equivalent on a touch screen, degrades badly for anyone with a
+          tremor or using a head pointer who crosses the nav on the way somewhere else, and puts
+          the site on the wrong side of SC 3.2.1 (On Focus) by changing context on focus alone.
+
+          `aria-haspopup` is gone with it. It announces a menu widget — the `role="menu"` keyboard
+          model with arrow-key traversal — and this is a disclosure containing ordinary links.
+          Claiming the wrong widget tells a screen-reader user to expect interactions that do not
+          exist. `aria-expanded` alone is the correct and complete contract here.
+        */}
         <nav className="hidden lg:flex h-full shrink-0" aria-label="Main">
           {navCategories.map((category) => (
             <button
               type="button"
               key={category}
-              onMouseEnter={() => setActiveDesktopNav(category)}
-              onFocus={() => setActiveDesktopNav(category)}
+              onClick={() => setActiveDesktopNav(activeDesktopNav === category ? null : category)}
               aria-expanded={activeDesktopNav === category}
-              aria-haspopup="true"
               className={`px-2 xl:px-4 h-full font-bold text-[13px] xl:text-base whitespace-nowrap flex items-center gap-1 transition-colors border-b-4 nb-focus-ring-navy dark:focus-visible:outline dark:focus-visible:outline-2 dark:focus-visible:outline-blue-400 ${headerFgClass} ${
                 activeDesktopNav === category
                   ? hasLogo
-                    ? 'border-white bg-white/10'
+                    ? // The open item becomes a white tab continuous with the white panel below
+                      // it. It used to keep the navy fill and mark itself with a 4px white
+                      // underline — which, sitting directly on top of a white panel, merged into
+                      // it and read as the header's bottom edge deforming under that one item
+                      // rather than as an indicator. Measured: white began 4px higher over the
+                      // active item than anywhere else along the header.
+                      'border-transparent bg-white nb-text-navy'
                     : 'nb-border-navy dark:border-blue-400 nb-text-navy dark:text-blue-400 bg-slate-50 dark:bg-zinc-800'
                   : `border-transparent ${
                       hasLogo ? 'hover:bg-white/10' : 'hover:bg-slate-50 dark:hover:bg-zinc-800'

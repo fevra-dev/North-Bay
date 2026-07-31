@@ -3,8 +3,7 @@
 **Live demo → [fevra-dev.github.io/North-Bay](https://fevra-dev.github.io/North-Bay/)**
 
 > **This is an unofficial concept, not the City's website.** It is an independent redesign study
-> built by Mac Calarco as part of an application for the Web Content Specialist (Communications)
-> position. It is not affiliated with, authorized by, or endorsed by the Corporation of the City
+> built as part of an application for the Web Content Specialist (Communications) position. It is not affiliated with, authorized by, or endorsed by the Corporation of the City
 > of North Bay. The City's wordmark and public content appear here for the purpose of
 > illustrating a redesign proposal, and all municipal branding remains the property of the City.
 > Nothing here is a live municipal service — no form submits, no payment processes, and no
