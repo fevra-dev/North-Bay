@@ -631,6 +631,87 @@ await page.waitForTimeout(300);
   check('every new-tab link carries rel=noopener', unsafe === 0, `${unsafe} unsafe`);
 }
 
+// 8b-5. SEARCH RESULTS GO SOMEWHERE, AND WHERE THEY GO RESOLVES.
+// Selecting a result used to write its title into the input and close the panel — a search that
+// finds the page and then declines to open it. Drive a spread of queries, collect every
+// destination surfaced, and check them all against the live site.
+{
+  const searchField = page.locator('main input[role="combobox"]').first();
+  const destinations = new Set();
+  for (const q of [
+    'taxes',
+    'garbage',
+    'permit',
+    'transit',
+    'council',
+    'business',
+    'parks',
+    'marina',
+    'fire',
+    'housing',
+    'election',
+    'waste',
+  ]) {
+    await searchField.fill('');
+    await page.waitForTimeout(120);
+    await searchField.fill(q);
+    await page.waitForTimeout(280);
+    for (const h of await page.evaluate(() =>
+      [...document.querySelectorAll('[role="option"][data-href]')].map((o) => o.dataset.href),
+    )) {
+      destinations.add(h);
+    }
+  }
+  await searchField.fill('');
+  await searchField.press('Escape');
+  await page.waitForTimeout(200);
+
+  const list = [...destinations];
+  const checked = [];
+  for (let i = 0; i < list.length; i += 6) {
+    checked.push(
+      ...(await Promise.all(
+        list.slice(i, i + 6).map(async (u) => {
+          try {
+            const r = await fetch(u, { redirect: 'follow' });
+            return { u, ok: r.status === 200 };
+          } catch {
+            return { u, ok: false };
+          }
+        }),
+      )),
+    );
+  }
+  const broken = checked.filter((c) => !c.ok);
+  check(
+    'every search result has a destination that resolves',
+    list.length >= 20 && list.every((u) => u.startsWith('http')) && broken.length === 0,
+    broken.length
+      ? `${broken.length} broken: ${broken[0].u}`
+      : `${list.length} destinations, all 200`,
+  );
+
+  // And selecting one actually opens it.
+  await searchField.fill('property tax');
+  await page.waitForTimeout(300);
+  const expected = await page.evaluate(
+    () => document.querySelector('[role="option"][data-href]')?.dataset.href,
+  );
+  const [popup] = await Promise.all([
+    ctx.waitForEvent('page', { timeout: 6000 }).catch(() => null),
+    page.locator('[role="option"]').first().click(),
+  ]);
+  check(
+    'selecting a search result opens the City page',
+    Boolean(popup) && popup.url().replace(/\/$/, '') === (expected ?? '').replace(/\/$/, ''),
+    popup ? `${popup.url()} (expected ${expected})` : 'no new tab opened',
+  );
+  if (popup) await popup.close();
+  await searchField.fill('');
+  await searchField.press('Escape');
+  await page.waitForTimeout(200);
+}
+
 // 8c. City Services quick actions
 const cityServiceLinks = await page.evaluate(() =>
   [...document.querySelectorAll('section[aria-label] a')]

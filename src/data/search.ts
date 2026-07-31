@@ -1,5 +1,7 @@
 import type { LocalizedLabel } from './i18n';
 
+const CITY = 'https://northbay.ca';
+
 const L = (en: string, fr: string): LocalizedLabel => ({ en, fr });
 
 /**
@@ -13,19 +15,25 @@ const L = (en: string, fr: string): LocalizedLabel => ({ en, fr });
  *
  * Every entry carries both titles, and a query is tested against both regardless of which
  * language the interface is in. Results then display in the active language. That is deliberate,
- * and it is not the same as simply translating the index:
+ * and not the same as simply translating the index:
  *
- *   - A francophone resident typing "ordures" finds the garbage page. Previously they got
- *     nothing, because the index only held "Garbage & Recycling" — the search silently behaved
- *     as though the French side of the site did not exist.
- *   - A resident typing "garbage" while the interface is in French still finds it. Bilingual
- *     residents mix languages constantly, and municipal terms are often known in only one of
- *     them. Matching only the active language would punish exactly the people the French
- *     interface exists to serve.
+ *   - A francophone typing "ordures" finds the garbage page. Previously they got nothing, because
+ *     the index held only "Garbage & Recycling" — the search behaved as though the French side of
+ *     the site did not exist.
+ *   - Someone typing "garbage" while the interface is in French still finds it. Bilingual
+ *     residents mix languages constantly and often know a municipal term in only one of them, so
+ *     matching only the active language would penalise exactly the people the French interface
+ *     exists to serve.
  *
- * `type` and `category` are surfaced as badges, because "Property Taxes" being a *service* and
- * "2026 Municipal Elections" being a *guide* changes what someone expects on the other side of
- * the click.
+ * EVERY RESULT GOES SOMEWHERE. Selecting one used to write its title into the input and close the
+ * panel, which looks like a working search right up to the moment it is supposed to be useful.
+ * Search is one of the two ways into this site; a result that leads nowhere makes it the one that
+ * does not work.
+ *
+ * Several entries deliberately share a destination. "Pay a Parking Ticket", "Parking Tickets &
+ * Fines" and "Overnight Parking Ban" are three things a resident might type and one page the City
+ * publishes. Mapping the vocabulary people actually use onto the page that answers them is the
+ * job; inventing a URL per phrasing is not.
  */
 export type SearchResultType = 'Service' | 'Guide' | 'Application' | 'Notice' | 'Public Record';
 
@@ -60,290 +68,422 @@ export interface SearchEntry {
   readonly title: LocalizedLabel;
   readonly category: SearchCategory;
   readonly type: SearchResultType;
+  /** The City's page for this result. Every entry has one; see the note above. */
+  readonly href: string;
 }
+
+/** Compact constructor — sixty-two entries read better as rows than as nested objects. */
+const e = (
+  en: string,
+  fr: string,
+  category: SearchCategory,
+  type: SearchResultType,
+  path: string,
+): SearchEntry => ({
+  title: L(en, fr),
+  category,
+  type,
+  href: path.startsWith('http') ? path : `${CITY}${path}`,
+});
 
 export const searchIndex: readonly SearchEntry[] = [
   // Payments and billing
-  { title: L('Property Taxes', 'Impôts fonciers'), category: 'Payments', type: 'Service' },
-  {
-    title: L('Pay a Parking Ticket', 'Payer une contravention'),
-    category: 'Payments',
-    type: 'Service',
-  },
-  {
-    title: L('Parking Tickets & Fines', 'Contraventions et amendes'),
-    category: 'Payments',
-    type: 'Service',
-  },
-  {
-    title: L('Water & Wastewater Billing', 'Facturation eau et eaux usées'),
-    category: 'Payments',
-    type: 'Service',
-  },
-  {
-    title: L('eServices Portal', 'Portail des services en ligne'),
-    category: 'Payments',
-    type: 'Service',
-  },
-  {
-    title: L('User Fees & Charges', 'Frais et droits d’utilisation'),
-    category: 'Payments',
-    type: 'Public Record',
-  },
+  e(
+    'Property Taxes',
+    'Impôts fonciers',
+    'Payments',
+    'Service',
+    '/services-payments/property-taxes/',
+  ),
+  e(
+    'Pay a Parking Ticket',
+    'Payer une contravention',
+    'Payments',
+    'Service',
+    '/services-payments/parking/',
+  ),
+  e(
+    'Parking Tickets & Fines',
+    'Contraventions et amendes',
+    'Payments',
+    'Service',
+    '/services-payments/parking/',
+  ),
+  e(
+    'Water & Wastewater Billing',
+    'Facturation eau et eaux usées',
+    'Payments',
+    'Service',
+    '/services-payments/water-wastewater/',
+  ),
+  e(
+    'eServices Portal',
+    'Portail des services en ligne',
+    'Payments',
+    'Service',
+    '/services-payments/',
+  ),
+  e(
+    'User Fees & Charges',
+    'Frais et droits d’utilisation',
+    'Payments',
+    'Public Record',
+    '/city-government/budget-and-finance/',
+  ),
 
   // Waste
-  { title: L('Garbage & Recycling', 'Ordures et recyclage'), category: 'Services', type: 'Guide' },
-  {
-    title: L('Curbside Collection Schedule', 'Calendrier de collecte en bordure de rue'),
-    category: 'Services',
-    type: 'Guide',
-  },
-  {
-    title: L('Residential Garbage Collection', 'Collecte des ordures résidentielles'),
-    category: 'Services',
-    type: 'Guide',
-  },
-  {
-    title: L(
-      'Waste Diversion & Household Hazardous Waste',
-      'Réacheminement des déchets et déchets dangereux',
-    ),
-    category: 'Services',
-    type: 'Guide',
-  },
-  {
-    title: L('Landfill Hours & Fees', 'Heures et frais du site d’enfouissement'),
-    category: 'Services',
-    type: 'Guide',
-  },
+  e(
+    'Garbage & Recycling',
+    'Ordures et recyclage',
+    'Services',
+    'Guide',
+    '/services-payments/garbage-recycling/',
+  ),
+  e(
+    'Curbside Collection Schedule',
+    'Calendrier de collecte en bordure de rue',
+    'Services',
+    'Guide',
+    '/services-payments/garbage-recycling/curbside-collection/',
+  ),
+  e(
+    'Residential Garbage Collection',
+    'Collecte des ordures résidentielles',
+    'Services',
+    'Guide',
+    '/services-payments/garbage-recycling/curbside-collection/residential-garbage-collection/',
+  ),
+  e(
+    'Waste Diversion & Household Hazardous Waste',
+    'Réacheminement des déchets et déchets dangereux',
+    'Services',
+    'Guide',
+    '/services-payments/garbage-recycling/waste-diversion/',
+  ),
+  e(
+    'Landfill Hours & Fees',
+    'Heures et frais du site d’enfouissement',
+    'Services',
+    'Guide',
+    '/services-payments/garbage-recycling/',
+  ),
 
   // Building and development
-  {
-    title: L('Building Permits', 'Permis de construire'),
-    category: 'Development',
-    type: 'Application',
-  },
-  {
-    title: L('Building & Development', 'Bâtiment et aménagement'),
-    category: 'Development',
-    type: 'Guide',
-  },
-  {
-    title: L('Zoning By-Law & Land Use', 'Règlement de zonage et utilisation du sol'),
-    category: 'Development',
-    type: 'Public Record',
-  },
-  {
-    title: L('Planning Applications', 'Demandes d’aménagement'),
-    category: 'Development',
-    type: 'Application',
-  },
+  e(
+    'Building Permits',
+    'Permis de construire',
+    'Development',
+    'Application',
+    '/services-payments/building-development/',
+  ),
+  e(
+    'Building & Development',
+    'Bâtiment et aménagement',
+    'Development',
+    'Guide',
+    '/services-payments/building-development/',
+  ),
+  e(
+    'Zoning By-Law & Land Use',
+    'Règlement de zonage et utilisation du sol',
+    'Development',
+    'Public Record',
+    '/city-government/by-laws/',
+  ),
+  e(
+    'Planning Applications',
+    'Demandes d’aménagement',
+    'Development',
+    'Application',
+    '/services-payments/building-development/',
+  ),
 
   // Transportation
-  {
-    title: L('North Bay Transit Schedules', 'Horaires du transport en commun'),
-    category: 'Transportation',
-    type: 'Service',
-  },
-  {
-    title: L('Transit Planner', 'Planificateur de trajet'),
-    category: 'Transportation',
-    type: 'Service',
-  },
-  {
-    title: L('Overnight Parking Ban', 'Interdiction de stationner la nuit'),
-    category: 'Transportation',
-    type: 'Notice',
-  },
-  {
-    title: L('Streets & Sidewalks', 'Rues et trottoirs'),
-    category: 'Transportation',
-    type: 'Service',
-  },
-  {
-    title: L('Active Transportation', 'Transport actif'),
-    category: 'Transportation',
-    type: 'Guide',
-  },
-  {
-    title: L('Winter Road Maintenance', 'Entretien hivernal des routes'),
-    category: 'Transportation',
-    type: 'Guide',
-  },
+  e(
+    'North Bay Transit Schedules',
+    'Horaires du transport en commun',
+    'Transportation',
+    'Service',
+    '/services-payments/north-bay-transit/',
+  ),
+  e(
+    'Transit Planner',
+    'Planificateur de trajet',
+    'Transportation',
+    'Service',
+    '/services-payments/north-bay-transit/',
+  ),
+  e(
+    'Overnight Parking Ban',
+    'Interdiction de stationner la nuit',
+    'Transportation',
+    'Notice',
+    '/services-payments/parking/',
+  ),
+  e(
+    'Streets & Sidewalks',
+    'Rues et trottoirs',
+    'Transportation',
+    'Service',
+    '/services-payments/streets-sidewalks/',
+  ),
+  e(
+    'Active Transportation',
+    'Transport actif',
+    'Transportation',
+    'Guide',
+    '/our-community/active-transportation/',
+  ),
+  e(
+    'Winter Road Maintenance',
+    'Entretien hivernal des routes',
+    'Transportation',
+    'Guide',
+    '/services-payments/streets-sidewalks/',
+  ),
 
   // Government
-  {
-    title: L(
-      'Council Meetings, Agendas & Minutes',
-      'Réunions du conseil, ordres du jour et procès-verbaux',
-    ),
-    category: 'Government',
-    type: 'Public Record',
-  },
-  {
-    title: L('2026 Municipal Elections', 'Élections municipales 2026'),
-    category: 'Government',
-    type: 'Guide',
-  },
-  { title: L('Mayor & Council', 'Maire et conseil'), category: 'Government', type: 'Guide' },
-  {
-    title: L('Municipal Dashboard', 'Tableau de bord municipal'),
-    category: 'Government',
-    type: 'Public Record',
-  },
-  {
-    title: L('Budget and Finance', 'Budget et finances'),
-    category: 'Government',
-    type: 'Public Record',
-  },
-  { title: L('By-Laws', 'Règlements municipaux'), category: 'Government', type: 'Public Record' },
-  {
-    title: L('Freedom of Information Requests', 'Demandes d’accès à l’information'),
-    category: 'Government',
-    type: 'Application',
-  },
-  {
-    title: L('Careers with the City', 'Carrières à la Ville'),
-    category: 'Government',
-    type: 'Service',
-  },
-  { title: L('Departments', 'Services municipaux'), category: 'Government', type: 'Guide' },
-  { title: L('Media Room', 'Salle de presse'), category: 'Government', type: 'Public Record' },
-  { title: L('Public Notices', 'Avis publics'), category: 'Government', type: 'Notice' },
-  {
-    title: L('Accessibility (AODA)', 'Accessibilité (LAPHO)'),
-    category: 'Government',
-    type: 'Guide',
-  },
-  {
-    title: L('Land Acknowledgement', 'Reconnaissance territoriale'),
-    category: 'Government',
-    type: 'Guide',
-  },
+  e(
+    'Council Meetings, Agendas & Minutes',
+    'Réunions du conseil, ordres du jour et procès-verbaux',
+    'Government',
+    'Public Record',
+    '/city-government/meetings-agendas-minutes/',
+  ),
+  e(
+    '2026 Municipal Elections',
+    'Élections municipales 2026',
+    'Government',
+    'Guide',
+    '/city-government/2026-elections/',
+  ),
+  e(
+    'Mayor & Council',
+    'Maire et conseil',
+    'Government',
+    'Guide',
+    '/city-government/mayor-council/',
+  ),
+  e(
+    'Municipal Dashboard',
+    'Tableau de bord municipal',
+    'Government',
+    'Public Record',
+    '/city-government/municipal-dashboard/',
+  ),
+  e(
+    'Budget and Finance',
+    'Budget et finances',
+    'Government',
+    'Public Record',
+    '/city-government/budget-and-finance/',
+  ),
+  e('By-Laws', 'Règlements municipaux', 'Government', 'Public Record', '/city-government/by-laws/'),
+  e(
+    'Freedom of Information Requests',
+    'Demandes d’accès à l’information',
+    'Government',
+    'Application',
+    '/city-government/freedom-of-information-requests/',
+  ),
+  e(
+    'Careers with the City',
+    'Carrières à la Ville',
+    'Government',
+    'Service',
+    '/city-government/careers/',
+  ),
+  e('Departments', 'Services municipaux', 'Government', 'Guide', '/city-government/departments/'),
+  e('Media Room', 'Salle de presse', 'Government', 'Public Record', '/city-government/media-room/'),
+  e('Public Notices', 'Avis publics', 'Government', 'Notice', '/city-government/media-room/'),
+  e(
+    'Accessibility (AODA)',
+    'Accessibilité (LAPHO)',
+    'Government',
+    'Guide',
+    '/city-government/accessibility/',
+  ),
+  e(
+    'Land Acknowledgement',
+    'Reconnaissance territoriale',
+    'Government',
+    'Guide',
+    '/city-government/land-acknowledgement/',
+  ),
 
   // Business
-  {
-    title: L('Business Licensing', 'Permis d’entreprise'),
-    category: 'Business',
-    type: 'Application',
-  },
-  {
-    title: L('Bid Opportunities & Tenders', 'Appels d’offres et soumissions'),
-    category: 'Business',
-    type: 'Service',
-  },
-  {
-    title: L('Start & Grow a Business', 'Démarrer et développer une entreprise'),
-    category: 'Business',
-    type: 'Guide',
-  },
-  {
-    title: L('Economic Development', 'Développement économique'),
-    category: 'Business',
-    type: 'Guide',
-  },
-  {
-    title: L('Municipal Incentives', 'Incitatifs municipaux'),
-    category: 'Business',
-    type: 'Guide',
-  },
-  { title: L('Film North Bay', 'Film North Bay'), category: 'Business', type: 'Service' },
+  e(
+    'Business Licensing',
+    'Permis d’entreprise',
+    'Business',
+    'Application',
+    '/services-payments/forms-permits-licenses/',
+  ),
+  e(
+    'Bid Opportunities & Tenders',
+    'Appels d’offres et soumissions',
+    'Business',
+    'Service',
+    '/business/bid-opportunities/',
+  ),
+  e(
+    'Start & Grow a Business',
+    'Démarrer et développer une entreprise',
+    'Business',
+    'Guide',
+    '/business/start-grow-a-business/',
+  ),
+  e(
+    'Economic Development',
+    'Développement économique',
+    'Business',
+    'Guide',
+    'https://www.investinnorthbay.ca/',
+  ),
+  e(
+    'Municipal Incentives',
+    'Incitatifs municipaux',
+    'Business',
+    'Guide',
+    '/business/municipal-incentives/',
+  ),
+  e(
+    'Film North Bay',
+    'Film North Bay',
+    'Business',
+    'Service',
+    'https://www.investinnorthbay.ca/industry/film-television/',
+  ),
 
   // Records and licences
-  {
-    title: L('Marriage Licences', 'Licences de mariage'),
-    category: 'Services',
-    type: 'Application',
-  },
-  {
-    title: L('Births, Marriages & Deaths', 'Naissances, mariages et décès'),
-    category: 'Services',
-    type: 'Application',
-  },
-  {
-    title: L('Forms, Permits & Licenses', 'Formulaires, permis et licences'),
-    category: 'Services',
-    type: 'Application',
-  },
-  { title: L('Report a Problem', 'Signaler un problème'), category: 'Services', type: 'Service' },
-  {
-    title: L('Report a Pothole or Road Issue', 'Signaler un nid-de-poule ou un problème routier'),
-    category: 'Services',
-    type: 'Service',
-  },
-  {
-    title: L('Customer Service Centre', 'Centre de service à la clientèle'),
-    category: 'Services',
-    type: 'Service',
-  },
-  {
-    title: L(
-      'North Bay Fire and Emergency Services',
-      'Service d’incendie et des mesures d’urgence',
-    ),
-    category: 'Services',
-    type: 'Service',
-  },
-  {
-    title: L('Fire Ban & Burn Permits', 'Interdiction de feu et permis de brûlage'),
-    category: 'Services',
-    type: 'Notice',
-  },
+  e(
+    'Marriage Licences',
+    'Licences de mariage',
+    'Services',
+    'Application',
+    '/services-payments/births-marriages-deaths/',
+  ),
+  e(
+    'Births, Marriages & Deaths',
+    'Naissances, mariages et décès',
+    'Services',
+    'Application',
+    '/services-payments/births-marriages-deaths/',
+  ),
+  e(
+    'Forms, Permits & Licenses',
+    'Formulaires, permis et licences',
+    'Services',
+    'Application',
+    '/services-payments/forms-permits-licenses/',
+  ),
+  e(
+    'Report a Problem',
+    'Signaler un problème',
+    'Services',
+    'Service',
+    '/services-payments/report-a-problem/',
+  ),
+  e(
+    'Report a Pothole or Road Issue',
+    'Signaler un nid-de-poule ou un problème routier',
+    'Services',
+    'Service',
+    '/services-payments/report-a-problem/',
+  ),
+  e(
+    'Customer Service Centre',
+    'Centre de service à la clientèle',
+    'Services',
+    'Service',
+    '/city-government/departments/customer-service-centre/',
+  ),
+  e(
+    'North Bay Fire and Emergency Services',
+    'Service d’incendie et des mesures d’urgence',
+    'Services',
+    'Service',
+    'https://fire.northbay.ca/',
+  ),
+  e(
+    'Fire Ban & Burn Permits',
+    'Interdiction de feu et permis de brûlage',
+    'Services',
+    'Notice',
+    'https://fire.northbay.ca/',
+  ),
 
   // Community
-  {
-    title: L('Parks, Playgrounds & Trails', 'Parcs, terrains de jeux et sentiers'),
-    category: 'Community',
-    type: 'Guide',
-  },
-  {
-    title: L(
-      'Recreation Programs & Facility Booking',
-      'Programmes récréatifs et réservation d’installations',
-    ),
-    category: 'Community',
-    type: 'Service',
-  },
-  {
-    title: L('Sports Facilities', 'Installations sportives'),
-    category: 'Community',
-    type: 'Service',
-  },
-  {
-    title: L('Arts, Heritage & Culture', 'Arts, patrimoine et culture'),
-    category: 'Community',
-    type: 'Guide',
-  },
-  {
-    title: L('Events & Programs', 'Événements et programmes'),
-    category: 'Community',
-    type: 'Guide',
-  },
-  { title: L('Marina', 'Marina'), category: 'Community', type: 'Service' },
-  {
-    title: L('Bay Cams & Weather Forecast', 'Webcams de la baie et météo'),
-    category: 'Community',
-    type: 'Service',
-  },
-  {
-    title: L('Housing in North Bay', 'Logement à North Bay'),
-    category: 'Community',
-    type: 'Guide',
-  },
-  { title: L('Immigration', 'Immigration'), category: 'Community', type: 'Guide' },
-  {
-    title: L('Community Safety and Well-Being', 'Sécurité et bien-être communautaires'),
-    category: 'Community',
-    type: 'Guide',
-  },
-  {
-    title: L('Explore North Bay - GIS Portal', 'Explorer North Bay — portail SIG'),
-    category: 'Community',
-    type: 'Service',
-  },
-  {
-    title: L('Environment & Sustainability', 'Environnement et durabilité'),
-    category: 'Community',
-    type: 'Guide',
-  },
+  e(
+    'Parks, Playgrounds & Trails',
+    'Parcs, terrains de jeux et sentiers',
+    'Community',
+    'Guide',
+    '/our-community/parks-playgrounds-trails/',
+  ),
+  e(
+    'Recreation Programs & Facility Booking',
+    'Programmes récréatifs et réservation d’installations',
+    'Community',
+    'Service',
+    '/our-community/recreational-activities/',
+  ),
+  e(
+    'Sports Facilities',
+    'Installations sportives',
+    'Community',
+    'Service',
+    '/our-community/sports-facilities/',
+  ),
+  e(
+    'Arts, Heritage & Culture',
+    'Arts, patrimoine et culture',
+    'Community',
+    'Guide',
+    '/our-community/arts-heritage-culture/',
+  ),
+  e(
+    'Events & Programs',
+    'Événements et programmes',
+    'Community',
+    'Guide',
+    '/our-community/events-programs/',
+  ),
+  e('Marina', 'Marina', 'Community', 'Service', '/our-community/marina/'),
+  e(
+    'Bay Cams & Weather Forecast',
+    'Webcams de la baie et météo',
+    'Community',
+    'Service',
+    '/our-community/bay-cams-weather-forecast/',
+  ),
+  e(
+    'Housing in North Bay',
+    'Logement à North Bay',
+    'Community',
+    'Guide',
+    '/our-community/housing-in-north-bay/',
+  ),
+  e('Immigration', 'Immigration', 'Community', 'Guide', 'https://northbayimmigration.ca/'),
+  e(
+    'Community Safety and Well-Being',
+    'Sécurité et bien-être communautaires',
+    'Community',
+    'Guide',
+    '/our-community/community-safety-and-well-being/',
+  ),
+  e(
+    'Explore North Bay - GIS Portal',
+    'Explorer North Bay — portail SIG',
+    'Community',
+    'Service',
+    '/our-community/explore-north-bay-gis-portal/',
+  ),
+  e(
+    'Environment & Sustainability',
+    'Environnement et durabilité',
+    'Community',
+    'Guide',
+    '/our-community/environment-sustainability/',
+  ),
 ];

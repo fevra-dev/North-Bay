@@ -69,9 +69,19 @@ export const SearchCombobox = ({
   const isHero = variant === 'hero';
   const isHeader = variant === 'header';
 
+  /*
+    Selecting a result goes to the City's page for it.
+
+    It previously wrote the title into the input and closed the panel, which is the behaviour of a
+    search box that has found something and then declines to do anything with it. New tab, and
+    `noopener,noreferrer`, for the same reason as every other outbound link here: this is a
+    concept handing off to the live municipal site, and the reviewer should not lose the concept
+    to check that the handoff works.
+  */
   const onSelect = (entry: SearchEntry) => {
     setQuery(getLabel(entry.title));
     close();
+    window.open(entry.href, '_blank', 'noopener,noreferrer');
   };
 
   const iconClass = isHero
@@ -141,6 +151,15 @@ export const SearchCombobox = ({
                   id={`${id}-option-${idx}`}
                   role="option"
                   aria-selected={idx === activeIndex}
+                  /*
+                    The destination as an attribute as well as behaviour. An option in the ARIA
+                    combobox pattern must not be a link — options are not separately tabbable, the
+                    input keeps focus and drives them via aria-activedescendant — so the href
+                    cannot live on an anchor here. Exposing it lets the link audit in
+                    tests/verify.mjs see where each result actually goes, and makes it visible in
+                    devtools rather than buried in a click handler.
+                  */
+                  data-href={result.href}
                   onMouseEnter={() => setActiveIndex(idx)}
                   onClick={() => onSelect(result)}
                   className={`flex flex-col px-4 py-3 cursor-pointer border-b border-zinc-100 dark:border-zinc-700 last:border-0 transition-colors ${
