@@ -85,13 +85,27 @@ export const Hero = ({
         width={1920}
         height={680}
         /*
-          The photograph is a 2.82:1 panorama. On a phone, `object-cover` keeps the full height
-          and crops the sides — and centred, that crop lands on open water, throwing away the
-          downtown and marina that make the image recognisably North Bay. Shifting the focal
-          point left keeps the shoreline and the town in frame on narrow viewports, and returns
-          to centre at `sm` and up where the full panorama fits.
+          The photograph is a 2.82:1 panorama, and the two breakpoints crop it along different
+          axes — which is why they need different focal points rather than one shared value.
+
+          On a phone the container is taller than it is wide, so `object-cover` keeps the full
+          height and crops the sides. Centred, that crop lands on open water and throws away the
+          downtown and marina that make the image recognisably North Bay; 32% keeps the shoreline
+          and the town in frame. The vertical value is inert here — the whole height is shown.
+
+          From `sm` up it inverts: the hero is a 5.81:1 letterbox at 1440px, so only the middle
+          49% of the photograph survives and the horizontal value is the inert one. Centred
+          vertically, that window put the marina at 58–81% of the hero — directly behind the
+          search row, which occupies 51–80%. The most characterful part of the photograph was
+          sitting underneath two opaque white boxes.
+
+          70% raises it to 37–60%, clear of the search and beside the heading, while keeping a
+          legible band of downtown along the top. Pushed further — 82% was tested — the skyline
+          thins to a sliver and the lower half becomes dead water. Adding hero height instead was
+          also tested: it costs 119px of vertical space and returns the marina to behind the
+          search, because the search row moves down with it.
         */
-        className="absolute inset-0 -z-10 w-full h-full object-cover object-[32%_center] sm:object-center"
+        className="absolute inset-0 -z-10 w-full h-full object-cover object-[32%_center] sm:object-[50%_70%]"
       />
     )}
 
