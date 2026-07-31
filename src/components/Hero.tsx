@@ -110,33 +110,30 @@ export const Hero = ({
     )}
 
     {/*
-      The scrim. Slightly denser at the top where the sky is brightest, easing toward the bottom
-      over the darker water — enough variation to keep the photograph readable as a photograph,
-      never light enough to put the text at risk. In dark mode it deepens further so the hero
-      does not glow against a near-black page.
-    */}
-    {/*
       TWO LAYERS, because the contrast requirement applies where the TEXT is, not evenly across
       the whole photograph.
 
-      A single flat scrim dense enough for the heading also flattens the water, the marina and
-      the treeline — the parts that make the image worth having. So the base layer is light,
-      enough to unify the photo and keep the white search boxes from vibrating against it, and a
-      second gradient concentrates opacity in the upper band where the heading actually sits and
-      releases toward the bottom where nothing but empty space overlaps the water.
+      The flat base is deliberately faint — 10% rather than the 30% it used to carry. Its only
+      job is to unify the photograph and stop the white search boxes vibrating against a bright
+      backdrop; it was never what made the heading legible, and at 30% it was dimming the
+      downtown and the marina to buy contrast it did not deliver.
 
-      The measured result is what governs this: tests/verify.mjs samples the lightest pixel
-      behind the heading specifically, rather than across the whole section, because the section
-      average was never the number the standard cares about.
+      Nearly all of the contrast now comes from the gradient in `.nb-hero-scrim`
+      (styles/index.css), which holds its density through the top third where the heading sits
+      and releases over the city below. Reshaping it rather than simply lightening it improved
+      both numbers at once: the hero is 11.7% brighter while the worst-case heading contrast rose
+      from 4.74:1 to 5.97:1.
+
+      The measured result governs. tests/verify.mjs samples the lightest pixel behind the heading
+      with the heading hidden, rather than averaging the section, because the average was never
+      the number the standard cares about — and it now samples a wide viewport too, since that is
+      where the crop is harshest and the contrast thinnest.
     */}
     <div
       aria-hidden="true"
-      className="absolute inset-0 -z-10 bg-[#003366]/30 dark:bg-[#001a33]/45"
+      className="absolute inset-0 -z-10 bg-[#003366]/10 dark:bg-[#001a33]/22"
     />
-    <div
-      aria-hidden="true"
-      className="absolute inset-0 -z-10 bg-linear-to-b from-[#00284f]/94 via-[#003366]/38 to-transparent dark:from-[#00101f]/88 dark:via-[#001a33]/50 dark:to-transparent"
-    />
+    <div aria-hidden="true" className="absolute inset-0 -z-10 nb-hero-scrim" />
 
     <div className="max-w-4xl mx-auto pt-12 pb-12 px-4 sm:px-8">
       <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-8 text-center sm:text-left text-white drop-shadow-sm">

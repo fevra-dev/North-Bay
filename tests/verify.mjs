@@ -332,24 +332,24 @@ await page.waitForTimeout(250);
 // find the LIGHTEST pixel in it — the worst case for white text anywhere in that band. The
 // contrast of white against that pixel has to clear 4.5:1 (SC 1.4.3). Sampling with the text
 // visible would measure antialiased glyph edges instead of the backdrop and report nonsense.
-const heroContrast = async () => {
+const heroContrast = async (pg = page) => {
   // Sample the HEADING's own box, not the whole hero section.
   //
   // The requirement (SC 1.4.3) is about the contrast between text and what is directly behind
   // it. Measuring the entire section swept in large areas of photograph that no text ever
   // overlaps, so the worst pixel found was usually somewhere nothing was written — which forced
   // the scrim far darker than legibility actually required and buried the photo for nothing.
-  const band = await page.evaluate(() => {
+  const band = await pg.evaluate(() => {
     const h1 = document.querySelector('main section h1');
     const r = h1.getBoundingClientRect();
     // A few pixels of margin so antialiasing at the glyph edges is not mistaken for backdrop.
     return { x: r.x - 4, y: r.y - 4, width: r.width + 8, height: r.height + 8 };
   });
-  await page.evaluate(() => {
+  await pg.evaluate(() => {
     document.querySelector('main section h1').style.visibility = 'hidden';
   });
-  await page.waitForTimeout(200);
-  const png = PNG.sync.read(await page.screenshot({ clip: band }));
+  await pg.waitForTimeout(200);
+  const png = PNG.sync.read(await pg.screenshot({ clip: band }));
   let lightest = -1;
   let rgb = null;
   for (let i = 0; i < png.data.length; i += 4) {
@@ -359,10 +359,10 @@ const heroContrast = async () => {
       rgb = [png.data[i], png.data[i + 1], png.data[i + 2]];
     }
   }
-  await page.evaluate(() => {
+  await pg.evaluate(() => {
     document.querySelector('main section h1').style.visibility = '';
   });
-  await page.waitForTimeout(150);
+  await pg.waitForTimeout(150);
   return { ratio: contrastVsWhite(lightest), rgb };
 };
 
@@ -374,6 +374,31 @@ check(
   heroLight.ratio >= 4.5,
   `worst backdrop rgb(${heroLight.rgb}) → ${heroLight.ratio.toFixed(2)}:1`,
 );
+
+/*
+  THE SAME MEASUREMENT AT 1920, because contrast over a photograph is not uniform across
+  breakpoints and this suite spent its whole life sampling one width.
+
+  The hero crops harder as the viewport widens — a 2.82:1 panorama in a 5.81:1 slot at 1440
+  becomes a 7.74:1 slot at 1920 — so the heading falls over a progressively brighter part of the
+  image. Measured on the scrim this replaced: 5.70:1 at 1440 and 4.74:1 at 1920. It passed here
+  every time while sitting a quarter of a point from failing on any large monitor, which is most
+  desks in a municipal office.
+
+  1920 rather than something larger because the hero stops changing shape once the photograph is
+  scaled to full width; beyond this the ratio stabilises.
+*/
+const wideCtx = await browser.newContext({ viewport: { width: 1920, height: 1080 } });
+const widePage = await wideCtx.newPage();
+await widePage.goto(APP_URL, { waitUntil: 'networkidle' });
+await widePage.waitForTimeout(400);
+const heroWide = await heroContrast(widePage);
+check(
+  'hero text clears 4.5:1 at 1920 where the crop is harshest',
+  heroWide.ratio >= 4.5,
+  `worst backdrop rgb(${heroWide.rgb}) → ${heroWide.ratio.toFixed(2)}:1`,
+);
+await wideCtx.close();
 
 // 8b. PERSISTENT HEADER SEARCH — now a toggle, not an always-open field.
 // An always-visible field could not survive translation: sized for the English nav it left no
