@@ -1,5 +1,7 @@
 import { ArrowRight, BarChart3 } from 'lucide-react';
 import type { TranslationKey } from '../data/i18n';
+import { cityLinks } from '../data/navigation';
+import { CityLink } from './CityLink';
 
 interface MunicipalDashboardProps {
   t: (key: TranslationKey) => string;
@@ -34,8 +36,8 @@ export const MunicipalDashboard = ({ t }: MunicipalDashboardProps) => (
           {t('municipalDashboardSub')}
         </p>
       </div>
-      <a
-        href="#"
+      <CityLink
+        href={cityLinks.municipalDashboard}
         className="group shrink-0 inline-flex items-center justify-center gap-2 nb-bg-navy nb-hover-navy-dark dark:bg-blue-600 dark:hover:bg-blue-700 text-white px-6 py-3.5 text-sm font-bold transition-colors focus-visible:ring-2 nb-focus-ring-navy focus-visible:ring-offset-2"
       >
         {t('exploreDashboard')}
@@ -44,7 +46,7 @@ export const MunicipalDashboard = ({ t }: MunicipalDashboardProps) => (
           className="transition-transform group-hover:translate-x-1 group-active:translate-x-1"
           aria-hidden="true"
         />
-      </a>
+      </CityLink>
     </div>
   </section>
 );

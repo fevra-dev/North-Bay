@@ -1,6 +1,7 @@
 import type { TranslationKey } from '../data/i18n';
-import { footerPopularPages, socialLinks } from '../data/navigation';
+import { cityLinks, footerPopularPages, socialLinks } from '../data/navigation';
 import { useTranslation } from '../hooks/useTranslation';
+import { CityLink } from './CityLink';
 
 interface FooterProps {
   t: (key: TranslationKey) => string;
@@ -39,15 +40,24 @@ const SocialIcon = ({ name }: { name: string }) => (
   </svg>
 );
 
-const FooterColumn = ({ title, links }: { title: string; links: string[] }) => (
+const FooterColumn = ({
+  title,
+  links,
+}: {
+  title: string;
+  links: { label: string; href: string }[];
+}) => (
   <div>
     <h2 className="text-xs font-bold tracking-widest text-zinc-500 uppercase mb-3">{title}</h2>
     <ul className="space-y-2 text-sm">
       {links.map((link) => (
-        <li key={link}>
-          <a href="#" className="text-zinc-400 hover:text-white hover:underline transition-colors">
-            {link}
-          </a>
+        <li key={link.label}>
+          <CityLink
+            href={link.href}
+            className="text-zinc-400 hover:text-white hover:underline transition-colors"
+          >
+            {link.label}
+          </CityLink>
         </li>
       ))}
     </ul>
@@ -109,7 +119,13 @@ export const Footer = ({ t, onOpenAccessibilityStatement }: FooterProps) => {
             </p>
           </div>
 
-          <FooterColumn title={t('topServicesFooter')} links={footerPopularPages.map(getLabel)} />
+          <FooterColumn
+            title={t('topServicesFooter')}
+            links={footerPopularPages.map((page) => ({
+              label: getLabel(page.label),
+              href: page.href,
+            }))}
+          />
 
           <div>
             <h2 className="text-xs font-bold tracking-widest text-zinc-500 uppercase mb-3">
@@ -149,15 +165,15 @@ export const Footer = ({ t, onOpenAccessibilityStatement }: FooterProps) => {
           <div className="border-t border-zinc-800 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-500">
             <p>© 2026 Corporation of the City of North Bay. {t('allRightsReserved')}</p>
             <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
-              <a href="#" className="hover:text-white transition-colors">
+              <CityLink href={cityLinks.contact} className="hover:text-white transition-colors">
                 {t('contactUs')}
-              </a>
-              <a href="#" className="hover:text-white transition-colors">
+              </CityLink>
+              <CityLink href={cityLinks.legal} className="hover:text-white transition-colors">
                 {t('privacy')}
-              </a>
-              <a href="#" className="hover:text-white transition-colors">
+              </CityLink>
+              <CityLink href={cityLinks.careers} className="hover:text-white transition-colors">
                 {t('careers')}
-              </a>
+              </CityLink>
               <button
                 type="button"
                 onClick={onOpenAccessibilityStatement}

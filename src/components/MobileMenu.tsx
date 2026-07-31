@@ -1,7 +1,8 @@
 import { ChevronDown, Moon, Sun, WifiOff } from 'lucide-react';
 import type { Language, NavCategory, TranslationKey } from '../data/i18n';
-import { navCategories, siteStructure } from '../data/navigation';
+import { navCategories, navHref, siteStructure } from '../data/navigation';
 import { useTranslation } from '../hooks/useTranslation';
+import { CityLink } from './CityLink';
 import { SearchCombobox } from './SearchCombobox';
 
 interface MobileMenuProps {
@@ -140,12 +141,12 @@ export const MobileMenu = ({
                     <ul id={panelId} className="flex flex-col pb-4 pl-2">
                       {siteStructure[category].map((item) => (
                         <li key={item.en}>
-                          <a
-                            href="#"
+                          <CityLink
+                            href={navHref(category, item)}
                             className="block py-3 text-base font-medium text-zinc-600 dark:text-zinc-400 nb-hover-text-ink dark:hover:text-white transition-colors"
                           >
                             {getLabel(item)}
-                          </a>
+                          </CityLink>
                         </li>
                       ))}
                     </ul>

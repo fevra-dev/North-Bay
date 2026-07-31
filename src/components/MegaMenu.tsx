@@ -1,7 +1,8 @@
 import { ArrowRight } from 'lucide-react';
 import type { NavCategory } from '../data/i18n';
-import { categoryDescriptions, siteStructure } from '../data/navigation';
+import { categoryDescriptions, categoryHref, navHref, siteStructure } from '../data/navigation';
 import { useTranslation } from '../hooks/useTranslation';
+import { CityLink } from './CityLink';
 
 interface MegaMenuProps {
   category: NavCategory;
@@ -32,18 +33,18 @@ export const MegaMenu = ({ category, categoryLabel }: MegaMenuProps) => {
               {getLabel(categoryDescriptions[category])}
             </p>
           </div>
-          <a
-            href="#"
+          <CityLink
+            href={categoryHref(category)}
             className="shrink-0 text-sm font-bold flex items-center gap-1 hover:underline text-zinc-900 dark:text-zinc-100"
           >
             {t('directory')} <ArrowRight size={16} aria-hidden="true" />
-          </a>
+          </CityLink>
         </div>
         <ul className="grid grid-cols-3 gap-x-12 gap-y-4">
           {items.map((item) => (
             <li key={item.en}>
-              <a
-                href="#"
+              <CityLink
+                href={navHref(category, item)}
                 className="text-zinc-600 dark:text-zinc-300 font-medium nb-hover-text-navy dark:hover:text-blue-400 hover:underline decoration-2 underline-offset-4 flex items-start gap-2"
               >
                 <span
@@ -51,7 +52,7 @@ export const MegaMenu = ({ category, categoryLabel }: MegaMenuProps) => {
                   aria-hidden="true"
                 />
                 {getLabel(item)}
-              </a>
+              </CityLink>
             </li>
           ))}
         </ul>

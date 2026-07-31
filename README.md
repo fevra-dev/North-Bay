@@ -153,9 +153,26 @@ bilingual municipal site they are what a francophone resident is scanning for.
 - Scroll lock measures the scrollbar's real width and pads for it, so opening a menu does not
   shift the page sideways
 
+### Navigation that actually goes somewhere
+
+Every navigation item, quick action, footer link and "I want to…" task opens the City's real page
+on northbay.ca. A concept whose navigation goes nowhere demonstrates a layout; one whose
+navigation works demonstrates an information architecture, and a reviewer can check any claim
+made about it in a click.
+
+URLs are derived from the English label rather than stored per item, because the City's own slugs
+are exactly that transformation — so a nav item cannot be added with a forgotten link. Five pages
+live on other paths or domains and are listed as overrides. All 61 were checked against the live
+site and the test suite re-checks them, because a link can rot without anything in this repo
+changing.
+
+They open in a new tab, which is a deliberate exception to the usual rule: these cross from a
+redesign proposal to the live municipal site, the two look similar enough to confuse, and a new
+tab keeps the concept open to come back to. Screen readers are told the destination.
+
 ## Verifying it, rather than asserting it
 
-`tests/verify.mjs` drives a real browser (Playwright) through **66 assertions** across desktop
+`tests/verify.mjs` drives a real browser (Playwright) through **68 assertions** across desktop
 and mobile viewports — the theme toggle repainting, dark mode surviving a reload, the focus trap
 holding across 50 Tab presses in both directions, combobox arrow-key wrapping, `<html lang>`
 switching, landmark structure, heading order, CSV export, zero horizontal overflow at 390px, the

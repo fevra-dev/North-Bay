@@ -1,7 +1,9 @@
 import { Calendar, FileText, MapPin } from 'lucide-react';
 import { eventsFeed, newsFeed } from '../data/feeds';
 import type { TranslationKey } from '../data/i18n';
+import { cityLinks } from '../data/navigation';
 import { useTranslation } from '../hooks/useTranslation';
+import { CityLink } from './CityLink';
 import { eventPlaceholderImage } from '../lib/placeholder';
 
 interface DashboardGridProps {
@@ -28,12 +30,12 @@ export const DashboardGrid = ({ t, isLowBandwidth }: DashboardGridProps) => {
             <h2 className="text-xl font-black flex items-center gap-2 text-zinc-900 dark:text-white">
               <FileText size={20} aria-hidden="true" /> {t('recentNews')}
             </h2>
-            <a
-              href="#"
+            <CityLink
+              href={cityLinks.mediaRoom}
               className="print:hidden text-xs font-bold hover:underline nb-text-navy dark:text-blue-400"
             >
               {t('allUpdates')}
-            </a>
+            </CityLink>
           </div>
           <div className="flex flex-col gap-4">
             {newsFeed.map((news) => (
@@ -72,12 +74,12 @@ export const DashboardGrid = ({ t, isLowBandwidth }: DashboardGridProps) => {
             <h2 className="text-xl font-black flex items-center gap-2 text-zinc-900 dark:text-white">
               <Calendar size={20} aria-hidden="true" /> {t('featuredEvents')}
             </h2>
-            <a
-              href="#"
+            <CityLink
+              href={cityLinks.events}
               className="print:hidden text-xs font-bold hover:underline nb-text-navy dark:text-blue-400"
             >
               {t('communityCalendar')}
-            </a>
+            </CityLink>
           </div>
           <div className="flex flex-col gap-4">
             {eventsFeed.map((event, index) => {

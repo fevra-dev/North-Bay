@@ -150,6 +150,7 @@ export const Hero = ({
             {quickTasks.map((task) => (
               <option key={task.action} value={task.action}>
                 {getLabel(task.label)}
+                {task.href ? ' ↗' : ''}
               </option>
             ))}
           </select>

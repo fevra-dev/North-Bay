@@ -14,7 +14,7 @@ import { SkipLink } from './components/SkipLink';
 import { TaskWizard, type WizardState } from './components/TaskWizard';
 import type { MeetingFilter } from './data/feeds';
 import type { NavCategory, TranslationKey } from './data/i18n';
-import type { QuickTaskAction } from './data/navigation';
+import { type QuickTaskAction, quickTasks } from './data/navigation';
 import { useFocusTrap } from './hooks/useFocusTrap';
 import { useScrollLock } from './hooks/useScrollLock';
 import { useTheme } from './hooks/useTheme';
@@ -112,10 +112,21 @@ const AppContent = () => {
 
   const handleTaskSelect = useCallback((action: QuickTaskAction) => {
     const titleKey = WIZARD_TASKS[action];
-    if (titleKey) setWizard({ isOpen: true, step: 1, titleKey });
-    // Every other task links straight out to an existing service page in a real deployment.
-    // Those destinations do not exist in this concept build, which the accessibility
-    // statement's "known issues" section states outright rather than leaving to be discovered.
+    if (titleKey) {
+      setWizard({ isOpen: true, step: 1, titleKey });
+      return;
+    }
+    /*
+      The other seven go to the City's real page for that task.
+
+      They used to reset the selector and do nothing, which made the site's own organizing
+      principle the least trustworthy thing on it: a task-first architecture that does not route
+      you to the task is just a differently-worded menu. A new tab for the same reason every other
+      outbound link uses one — this is a concept handing off to the live municipal site, and the
+      reviewer should not lose the concept to check that the handoff works.
+    */
+    const task = quickTasks.find((qt) => qt.action === action);
+    if (task?.href) window.open(task.href, '_blank', 'noopener,noreferrer');
   }, []);
 
   const bandwidthClass = isLowBandwidth

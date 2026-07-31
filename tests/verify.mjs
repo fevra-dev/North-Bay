@@ -488,6 +488,69 @@ await frSearch.press('Escape');
 await page.getByRole('button', { name: /switch to english/i }).click();
 await page.waitForTimeout(300);
 
+// 8b-4. EVERY OUTBOUND LINK RESOLVES, AND IS SAFELY TARGETED.
+// The navigation points at the City's real pages, which means a link can rot without anything in
+// this repo changing. Generating a plausible URL is not the same as it existing, so the URLs are
+// derived from labels and then checked against the live site. `noopener` is asserted alongside:
+// a `target="_blank"` without it hands the opened page a reference back through `window.opener`.
+{
+  const collect = () =>
+    page.evaluate(() =>
+      [...document.querySelectorAll('a[href]')]
+        .map((a) => a.getAttribute('href'))
+        .filter((h) => h?.startsWith('http')),
+    );
+  const found = new Set(await collect());
+  const navButtons = page.locator('header nav[aria-label="Main"] button');
+  const navCount = await navButtons.count();
+  for (let i = 0; i < navCount; i++) {
+    await navButtons.nth(i).hover();
+    await page.waitForTimeout(300);
+    for (const h of await collect()) found.add(h);
+  }
+  // Move the pointer off the nav and close the menu it opened. Hovering another element would
+  // fail here: the open mega menu covers most of the page and intercepts the pointer.
+  await page.mouse.move(0, 600);
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(250);
+
+  const urls = [...found];
+  const results = [];
+  for (let i = 0; i < urls.length; i += 6) {
+    results.push(
+      ...(await Promise.all(
+        urls.slice(i, i + 6).map(async (u) => {
+          try {
+            const r = await fetch(u, { redirect: 'follow' });
+            return { u, ok: r.status === 200, status: r.status };
+          } catch {
+            return { u, ok: false, status: 'ERR' };
+          }
+        }),
+      )),
+    );
+  }
+  const broken = results.filter((r) => !r.ok);
+  check(
+    'every outbound link resolves on northbay.ca',
+    urls.length > 50 && broken.length === 0,
+    broken.length
+      ? `${broken.length} broken: ${broken
+          .slice(0, 3)
+          .map((b) => `${b.status} ${b.u}`)
+          .join(' | ')}`
+      : `${urls.length} links, all 200`,
+  );
+
+  const unsafe = await page.evaluate(
+    () =>
+      [...document.querySelectorAll('a[href^="http"]')].filter(
+        (a) => a.target === '_blank' && !(a.rel || '').includes('noopener'),
+      ).length,
+  );
+  check('every new-tab link carries rel=noopener', unsafe === 0, `${unsafe} unsafe`);
+}
+
 // 8c. City Services quick actions
 const cityServiceLinks = await page.evaluate(() =>
   [...document.querySelectorAll('section[aria-label] a')]
@@ -507,12 +570,16 @@ check(
 );
 
 // 8e. Social links open safely and are individually named
+// Scoped by domain, not by `target="_blank"`: the footer's City links now open in a new tab too,
+// so the old selector matched eleven links and counted them all as social accounts.
 const socials = await page.evaluate(() =>
-  [...document.querySelectorAll('footer a[target="_blank"]')].map((a) => ({
-    href: a.getAttribute('href'),
-    rel: a.getAttribute('rel'),
-    name: a.textContent.trim(),
-  })),
+  [...document.querySelectorAll('footer a[target="_blank"]')]
+    .filter((a) => /facebook|twitter|instagram|youtube/i.test(a.href))
+    .map((a) => ({
+      href: a.getAttribute('href'),
+      rel: a.getAttribute('rel'),
+      name: a.textContent.trim(),
+    })),
 );
 check('four social links in footer', socials.length === 4, socials.map((s) => s.name).join(', '));
 check(

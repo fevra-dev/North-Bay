@@ -1,6 +1,7 @@
 import { ArrowRight } from 'lucide-react';
 import type { LocalizedLabel, TranslationKey } from '../data/i18n';
 import { cityServices } from '../data/navigation';
+import { CityLink } from './CityLink';
 
 interface CityServicesProps {
   t: (key: TranslationKey) => string;
@@ -26,7 +27,7 @@ export const CityServices = ({ t, getLabel }: CityServicesProps) => (
     <ul className="grid sm:grid-cols-2 gap-3 flex-1">
       {cityServices.map((service) => (
         <li key={service.label.en} className="flex">
-          <a
+          <CityLink
             href={service.href}
             className="group flex-1 flex items-center justify-between gap-2 border-2 nb-border-navy dark:border-blue-500 nb-text-navy dark:text-blue-400 px-4 py-3 text-sm font-bold transition-colors nb-hover-bg-navy nb-hover-text-white dark:hover:bg-blue-600 dark:hover:text-white focus-visible:ring-2 nb-focus-ring-navy"
           >
@@ -36,7 +37,7 @@ export const CityServices = ({ t, getLabel }: CityServicesProps) => (
               className="shrink-0 transition-transform group-hover:translate-x-0.5 group-active:translate-x-0.5"
               aria-hidden="true"
             />
-          </a>
+          </CityLink>
         </li>
       ))}
     </ul>

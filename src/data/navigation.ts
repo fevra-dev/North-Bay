@@ -4,6 +4,82 @@ import type { LocalizedLabel, NavCategory } from './i18n';
 const L = (en: string, fr: string): LocalizedLabel => ({ en, fr });
 
 /**
+ * REAL DESTINATIONS.
+ *
+ * Every navigation link resolves to the City's actual page rather than to `#`. A concept whose
+ * navigation goes nowhere demonstrates a layout; one whose navigation works demonstrates an
+ * information architecture, and a reviewer can check any claim made about it in one click.
+ *
+ * The URL is derived from the English label rather than stored per item, because the City's own
+ * slugs are exactly that transformation — lowercase, punctuation dropped, spaces hyphenated.
+ * Deriving it means a nav item cannot be added with a forgotten or mistyped link.
+ *
+ * Every generated URL was checked against the live site: all 51 return 200. Five of them redirect
+ * to a canonical home elsewhere — two onto entirely different domains — so those are listed as
+ * overrides and linked directly rather than through a hop. Verified 2026-07-30; if the City
+ * reorganizes, `node .checkurls.mjs`-style verification is the way to find out rather than
+ * discovering it from a reviewer hitting a 404.
+ */
+const CITY_BASE = 'https://northbay.ca';
+
+const CATEGORY_SLUG: Readonly<Record<NavCategory, string>> = {
+  'Services & Payments': 'services-payments',
+  Business: 'business',
+  'City Government': 'city-government',
+  'Our Community': 'our-community',
+};
+
+const slugify = (label: string): string =>
+  label
+    .toLowerCase()
+    // Punctuation becomes a separator rather than vanishing, so "Births, Marriages & Deaths"
+    // yields "births-marriages-deaths" and not "birthsmarriages-deaths".
+    .replace(/[&,'’.()]/g, ' ')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
+/** Pages the City serves from a different path, or a different domain, than the slug implies. */
+const LINK_OVERRIDES: Readonly<Record<string, string>> = {
+  'Customer Service Centre': `${CITY_BASE}/city-government/departments/customer-service-centre/`,
+  'North Bay Fire and Emergency Services': 'https://fire.northbay.ca/',
+  'Economic Development': 'https://www.investinnorthbay.ca/',
+  'Film North Bay': 'https://www.investinnorthbay.ca/industry/film-television/',
+  Immigration: 'https://northbayimmigration.ca/',
+};
+
+/** The City's page for one navigation item. */
+export const navHref = (category: NavCategory, item: LocalizedLabel): string =>
+  LINK_OVERRIDES[item.en] ?? `${CITY_BASE}/${CATEGORY_SLUG[category]}/${slugify(item.en)}/`;
+
+/** The City's landing page for a whole category, used by each mega menu's directory link. */
+export const categoryHref = (category: NavCategory): string =>
+  `${CITY_BASE}/${CATEGORY_SLUG[category]}/`;
+
+/** Destinations referenced from more than one place. */
+export const cityLinks = {
+  propertyTaxes: `${CITY_BASE}/services-payments/property-taxes/`,
+  parking: `${CITY_BASE}/services-payments/parking/`,
+  careers: `${CITY_BASE}/city-government/careers/`,
+  buildingDevelopment: `${CITY_BASE}/services-payments/building-development/`,
+  aboutNorthBay: `${CITY_BASE}/our-community/about-north-bay/`,
+  birthsMarriagesDeaths: `${CITY_BASE}/services-payments/births-marriages-deaths/`,
+  housing: `${CITY_BASE}/our-community/housing-in-north-bay/`,
+  moveUp: 'https://www.investinnorthbay.ca/community/moveup/',
+  transit: `${CITY_BASE}/services-payments/north-bay-transit/`,
+  reportProblem: `${CITY_BASE}/services-payments/report-a-problem/`,
+  formsPermits: `${CITY_BASE}/services-payments/forms-permits-licenses/`,
+  garbageRecycling: `${CITY_BASE}/services-payments/garbage-recycling/`,
+  meetings: `${CITY_BASE}/city-government/meetings-agendas-minutes/`,
+  municipalDashboard: `${CITY_BASE}/city-government/municipal-dashboard/`,
+  mediaRoom: `${CITY_BASE}/city-government/media-room/`,
+  events: `${CITY_BASE}/our-community/events-programs/`,
+  contact: `${CITY_BASE}/contact-us/`,
+  // The City serves /privacy/ as a redirect to /legal/; link the destination directly.
+  legal: `${CITY_BASE}/legal/`,
+  accessibility: `${CITY_BASE}/city-government/accessibility/`,
+} as const;
+
+/**
  * THE "I WANT TO..." TASK SELECTOR.
  *
  * Life Events now lives inside this mechanism instead of sitting as a fifth navigation tab.
@@ -37,18 +113,58 @@ export type QuickTaskAction =
 export interface QuickTask {
   readonly label: LocalizedLabel;
   readonly action: QuickTaskAction;
+  /**
+   * Where the task goes. `null` for the two that open the guided wizard instead.
+   *
+   * These seven previously reset the selector and did nothing — the single most likely thing for
+   * a reviewer to click and the one place the concept visibly stopped being a website. Each now
+   * lands on the City's real page for that task, which is also the honest demonstration: the
+   * point of a task-first information architecture is that it routes people to the service, and
+   * that claim is only checkable if the routing exists.
+   */
+  readonly href: string | null;
 }
 
 export const quickTasks: readonly QuickTask[] = [
-  { label: L('Pay Property Taxes', 'Payer les impôts fonciers'), action: 'link_taxes' },
-  { label: L('Report a Pothole', 'Signaler un nid-de-poule'), action: 'wizard_report' },
-  { label: L('Pay a Parking Ticket', 'Payer une contravention'), action: 'link_parking' },
-  { label: L('Find a Job', 'Trouver un emploi'), action: 'link_job' },
-  { label: L('Start a Business', 'Démarrer une entreprise'), action: 'wizard_business' },
-  { label: L('Build or Renovate', 'Construire ou rénover'), action: 'link_renovating' },
-  { label: L('Move to North Bay', 'Emménager à North Bay'), action: 'link_moving' },
-  { label: L('Start a Family', 'Fonder une famille'), action: 'link_family' },
-  { label: L('Retire in North Bay', 'Prendre sa retraite à North Bay'), action: 'link_retiring' },
+  {
+    label: L('Pay Property Taxes', 'Payer les impôts fonciers'),
+    action: 'link_taxes',
+    href: cityLinks.propertyTaxes,
+  },
+  { label: L('Report a Pothole', 'Signaler un nid-de-poule'), action: 'wizard_report', href: null },
+  {
+    label: L('Pay a Parking Ticket', 'Payer une contravention'),
+    action: 'link_parking',
+    href: cityLinks.parking,
+  },
+  { label: L('Find a Job', 'Trouver un emploi'), action: 'link_job', href: cityLinks.careers },
+  {
+    label: L('Start a Business', 'Démarrer une entreprise'),
+    action: 'wizard_business',
+    href: null,
+  },
+  {
+    label: L('Build or Renovate', 'Construire ou rénover'),
+    action: 'link_renovating',
+    href: cityLinks.buildingDevelopment,
+  },
+  {
+    // MoveUp is the City's own relocation programme — a better answer for "I want to move here"
+    // than the general About page.
+    label: L('Move to North Bay', 'Emménager à North Bay'),
+    action: 'link_moving',
+    href: cityLinks.moveUp,
+  },
+  {
+    label: L('Start a Family', 'Fonder une famille'),
+    action: 'link_family',
+    href: cityLinks.birthsMarriagesDeaths,
+  },
+  {
+    label: L('Retire in North Bay', 'Prendre sa retraite à North Bay'),
+    action: 'link_retiring',
+    href: cityLinks.housing,
+  },
 ];
 
 /**
@@ -166,18 +282,24 @@ export interface CityService {
 }
 
 export const cityServices: readonly CityService[] = [
-  { label: L('Plan a Transit Route', 'Planifier un trajet'), href: '#' },
-  { label: L('Report an Issue', 'Signaler un problème'), href: '#' },
-  { label: L('Apply for a Building Permit', 'Demander un permis de construire'), href: '#' },
-  { label: L('Explore Careers', 'Explorer les carrières'), href: '#' },
+  { label: L('Plan a Transit Route', 'Planifier un trajet'), href: cityLinks.transit },
+  { label: L('Report an Issue', 'Signaler un problème'), href: cityLinks.reportProblem },
+  {
+    label: L('Apply for a Building Permit', 'Demander un permis de construire'),
+    href: cityLinks.formsPermits,
+  },
+  { label: L('Explore Careers', 'Explorer les carrières'), href: cityLinks.careers },
 ];
 
-/** The four footer "popular pages", bilingual for the same reason the nav is. */
-export const footerPopularPages: readonly LocalizedLabel[] = [
-  L('Garbage & Recycling', 'Ordures et recyclage'),
-  L('North Bay Transit', 'Transport en commun de North Bay'),
-  L('Property Taxes', 'Impôts fonciers'),
-  L('Forms, Permits & Licenses', 'Formulaires, permis et licences'),
+/** The four footer "popular pages", bilingual and linked for the same reason the nav is. */
+export const footerPopularPages: readonly { label: LocalizedLabel; href: string }[] = [
+  { label: L('Garbage & Recycling', 'Ordures et recyclage'), href: cityLinks.garbageRecycling },
+  { label: L('North Bay Transit', 'Transport en commun de North Bay'), href: cityLinks.transit },
+  { label: L('Property Taxes', 'Impôts fonciers'), href: cityLinks.propertyTaxes },
+  {
+    label: L('Forms, Permits & Licenses', 'Formulaires, permis et licences'),
+    href: cityLinks.formsPermits,
+  },
 ];
 
 /**

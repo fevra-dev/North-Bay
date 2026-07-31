@@ -154,7 +154,7 @@ export const i18n = {
     a11yKnown1:
       'French translations have not yet had a review pass by a fluent speaker; the interface, navigation and content are translated, but the wording has not been professionally verified',
     a11yKnown2:
-      'This is a demonstration build: navigation links and service destinations are not wired to real pages',
+      "This is a demonstration build. Navigation and service links open the City's real pages on northbay.ca in a new tab; the page content shown here — news, events and meeting records — is illustrative and its own links do not resolve.",
     a11yFeedbackHeading: 'Feedback and accommodation requests',
     a11yFeedbackBody:
       'If any part of this site is difficult to use with assistive technology, contact the Customer Service Centre at',
@@ -162,6 +162,7 @@ export const i18n = {
       'Requests for information in an accessible format will be met in a timeframe that takes the request into account.',
     a11yReviewed: 'Last reviewed: July 2026.',
     closeDialog: 'Close dialog',
+    opensOnCitySite: '(opens northbay.ca in a new tab)',
   },
   fr: {
     title: 'Ville de North Bay',
@@ -297,7 +298,7 @@ export const i18n = {
     a11yKnown1:
       'Les traductions françaises n’ont pas encore été révisées par une personne dont c’est la langue maternelle; l’interface, la navigation et le contenu sont traduits, mais la formulation n’a pas été vérifiée professionnellement',
     a11yKnown2:
-      'Il s’agit d’une version de démonstration : les liens de navigation et les destinations de services ne mènent pas à de vraies pages',
+      'Il s’agit d’une version de démonstration. Les liens de navigation et de services ouvrent les vraies pages de la Ville sur northbay.ca dans un nouvel onglet; le contenu présenté ici — actualités, événements et registres de réunions — est illustratif et ses propres liens ne mènent nulle part.',
     a11yFeedbackHeading: 'Commentaires et demandes d’adaptation',
     a11yFeedbackBody:
       'Si une partie de ce site est difficile à utiliser avec une technologie d’assistance, communiquez avec le Centre de service à la clientèle à',
@@ -305,6 +306,7 @@ export const i18n = {
       'Les demandes d’information dans un format accessible seront traitées dans un délai qui tient compte de la demande.',
     a11yReviewed: 'Dernière révision : juillet 2026.',
     closeDialog: 'Fermer le dialogue',
+    opensOnCitySite: '(ouvre northbay.ca dans un nouvel onglet)',
   },
 } as const;
 
